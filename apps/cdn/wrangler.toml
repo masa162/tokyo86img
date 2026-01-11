@@ -1,0 +1,12 @@
+name = "unbelong-cdn"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+IMAGE_ACCOUNT_HASH = "wdR9enbrkaPsEgUtgFORrw"
+
+# カスタムドメイン（例: img.unbelong.xyz）で運用する場合、
+# Cloudflareの管理画面か、wrangler.toml の routes 設定で紐付けます。
+# routes = [
+#   { pattern = "img.unbelong.xyz/*", custom_domain = true }
+# ]

@@ -1,0 +1,25 @@
+{
+  "name": "unbelong",
+  "version": "1.0.0",
+  "description": "unbelong - Hono based Comic & Illustration Platform",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace=@unbelong/api",
+    "dev:admin": "npm run dev --workspace=@unbelong/admin",
+    "dev:public": "npm run dev --workspace=@unbelong/public",
+    "dev:cdn": "npm run dev --workspace=@unbelong/cdn",
+    "deploy:api": "npm run deploy --workspace=@unbelong/api",
+    "deploy:admin": "npm run deploy --workspace=@unbelong/admin",
+    "deploy:public": "npm run deploy --workspace=@unbelong/public",
+    "deploy:cdn": "npm run deploy --workspace=@unbelong/cdn",
+    "build": "npm run build --workspaces"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "wrangler": "^3.0.0"
+  }
+}

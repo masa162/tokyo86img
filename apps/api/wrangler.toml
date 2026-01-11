@@ -1,0 +1,17 @@
+name = "unbelong-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# D1 データベース
+[[d1_databases]]
+binding = "DB"
+database_name = "unbelong-db"
+database_id = "60316b26-074e-4fd3-a06b-272bc198b6b1"
+
+# 環境変数
+[vars]
+ALLOWED_ORIGINS = "*"
+CLOUDFLARE_ACCOUNT_ID = "c677241d7d66ff80103bab9f142128ab"
+
+[env.production]
+ALLOWED_ORIGINS = "https://admin.unbelong.xyz,https://comic.unbelong.xyz,https://illust.unbelong.xyz"
