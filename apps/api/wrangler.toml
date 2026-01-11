@@ -12,6 +12,7 @@ database_id = "60316b26-074e-4fd3-a06b-272bc198b6b1"
 [vars]
 ALLOWED_ORIGINS = "*"
 CLOUDFLARE_ACCOUNT_ID = "c677241d7d66ff80103bab9f142128ab"
+CLOUDFLARE_IMAGES_API_TOKEN = "" # wrangler secret put で設定するかダッシュボードで設定してください
 
 [env.production]
 ALLOWED_ORIGINS = "https://admin.unbelong.xyz,https://comic.unbelong.xyz,https://illust.unbelong.xyz"

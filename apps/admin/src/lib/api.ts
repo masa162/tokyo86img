@@ -44,4 +44,16 @@ export const episodesApi = {
     client.delete<ApiResponse<void>>(`/api/episodes/${id}`),
 };
 
+export const imageApi = {
+  upload: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return client.post<ApiResponse<{ id: string; filename: string; variants: string[] }>>('/api/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+};
+
 export default client;

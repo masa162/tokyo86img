@@ -9,6 +9,7 @@ type Bindings = {
   DB: D1Database;
   ALLOWED_ORIGINS: string;
   CLOUDFLARE_ACCOUNT_ID: string;
+  CLOUDFLARE_IMAGES_API_TOKEN: string;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -181,6 +182,65 @@ app.delete('/api/episodes/:id', async (c) => {
   const id = c.req.param('id');
   await c.env.DB.prepare('DELETE FROM episodes WHERE id = ?').bind(id).run();
   return c.json({ success: true });
+});
+
+// --- Upload API ---
+app.post('/api/upload', async (c) => {
+  try {
+    const formData = await c.req.parseBody();
+    const file = formData['file'] as File;
+
+    if (!file) {
+      return c.json({ success: false, error: 'File is required' }, 400);
+    }
+
+    const accountId = c.env.CLOUDFLARE_ACCOUNT_ID;
+    const apiToken = c.env.CLOUDFLARE_IMAGES_API_TOKEN;
+
+    if (!accountId || !apiToken) {
+      return c.json({ success: false, error: 'Cloudflare API configuration missing' }, 500);
+    }
+
+    const uploadFormData = new FormData();
+    uploadFormData.append('file', file);
+
+    const response = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${accountId}/images/v1`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiToken}`,
+        },
+        body: uploadFormData,
+      }
+    );
+
+    const result: any = await response.json();
+
+    if (!result.success) {
+      return c.json({
+        success: false,
+        error: 'Upload failed',
+        details: result.errors || result.messages
+      }, 500);
+    }
+
+    return c.json({
+      success: true,
+      data: {
+        id: result.result.id,
+        filename: result.result.filename,
+        variants: result.result.variants,
+      },
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    return c.json({
+      success: false,
+      error: 'Upload failed',
+      details: error instanceof Error ? error.message : String(error)
+    }, 500);
+  }
 });
 
 export default app;
