@@ -1,4 +1,3 @@
-```
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { episodesApi, worksApi, imageApi } from '@/lib/api';
@@ -102,7 +101,7 @@ export default function EpisodeForm({
       if (isEdit && episode) {
         await (episodesApi.update as any)(episode.id, submitData);
         alert('更新しました');
-        navigate('/works'); // もしくは特定作品のエピソード一覧へ
+        navigate('/works');
       } else {
         const response = await (episodesApi.create as any)(submitData);
         alert('作成しました');
@@ -142,7 +141,6 @@ export default function EpisodeForm({
       </div>
 
       <div className="glass p-8 rounded-3xl space-y-6">
-        {/* 作品選択 */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">作品 <span className="text-red-500">*</span></label>
           <select
@@ -160,7 +158,6 @@ export default function EpisodeForm({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* 話数 */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">話数 <span className="text-red-500">*</span></label>
             <div className="relative">
@@ -176,7 +173,6 @@ export default function EpisodeForm({
             </div>
           </div>
 
-          {/* サムネイル画像ID */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">サムネイル画像ID</label>
             <div className="flex gap-2">
@@ -196,7 +192,6 @@ export default function EpisodeForm({
                 onClick={() => thumbFileInputRef.current?.click()}
                 disabled={!!uploading}
                 className="p-3 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center shrink-0 disabled:opacity-50"
-                title="アップロード"
               >
                 {uploading === 'thumbnail_image_id' ? <Loader2 className="animate-spin" size={18} /> : <Upload size={18} />}
               </button>
@@ -209,43 +204,8 @@ export default function EpisodeForm({
               />
             </div>
           </div>
-
-          {/* OGP画像ID */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">OGP画像ID</label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="text"
-                  name="og_image_id"
-                  value={formData.og_image_id}
-                  onChange={handleChange}
-                  placeholder="画像IDを入力"
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => ogFileInputRef.current?.click()}
-                disabled={!!uploading}
-                className="p-3 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center shrink-0 disabled:opacity-50"
-                title="アップロード"
-              >
-                {uploading === 'og_image_id' ? <Loader2 className="animate-spin" size={18} /> : <Upload size={18} />}
-              </button>
-              <input
-                type="file"
-                ref={ogFileInputRef}
-                onChange={(e) => handleFileUpload(e, 'og_image_id')}
-                accept="image/*"
-                className="hidden"
-              />
-            </div>
-          </div>
         </div>
 
-        {/* 編集時のみ表示される項目 */}
         {isEdit && (
           <div className="pt-6 border-t border-gray-100 space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
             <div>
@@ -258,8 +218,9 @@ export default function EpisodeForm({
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none"
               />
             </div>
+            
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">OG画像 ID</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">OGP画像ID</label>
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -268,6 +229,7 @@ export default function EpisodeForm({
                     name="og_image_id"
                     value={formData.og_image_id}
                     onChange={handleChange}
+                    placeholder="画像IDを入力"
                     className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none"
                   />
                 </div>
@@ -276,7 +238,6 @@ export default function EpisodeForm({
                   onClick={() => ogFileInputRef.current?.click()}
                   disabled={!!uploading}
                   className="p-3 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center shrink-0 disabled:opacity-50"
-                  title="アップロード"
                 >
                   {uploading === 'og_image_id' ? <Loader2 className="animate-spin" size={18} /> : <Upload size={18} />}
                 </button>
@@ -289,6 +250,7 @@ export default function EpisodeForm({
                 />
               </div>
             </div>
+
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">スラッグ</label>
               <input

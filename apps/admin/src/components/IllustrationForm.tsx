@@ -56,7 +56,7 @@ export default function IllustrationForm({
       if (response.data.success && response.data.data) {
         setFormData((prev) => ({
           ...prev,
-          [fieldName]: response.data.data.id,
+          [fieldName]: response.data.data!.id,
         }));
       }
     } catch (error) {
