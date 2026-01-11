@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "wrangler dev src/index.ts",
-    "deploy": "wrangler deploy src/index.ts"
+    "deploy": "wrangler deploy src/index.ts",
+    "build": "echo 'no build step needed for cdn worker'"
   },
   "dependencies": {
     "hono": "^4.0.0"

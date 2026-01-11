@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "wrangler dev src/index.ts",
     "deploy": "wrangler deploy src/index.ts",
-    "cf-typegen": "wrangler types src/bindings.d.ts"
+    "cf-typegen": "wrangler types src/bindings.d.ts",
+    "build": "echo 'no build step needed for api worker'"
   },
   "dependencies": {
     "@unbelong/shared": "*",
