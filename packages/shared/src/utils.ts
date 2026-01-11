@@ -8,14 +8,21 @@ import type { CloudflareImageVariant } from './types';
 export function getImageUrl(
   imageId: string,
   variant: string | CloudflareImageVariant = 'public',
-  accountHash: string = 'wdR9enbrkaPsEgUtgFORrw'
+  accountHash?: string
 ): string {
-  // 環境変数からカスタムドメインを取得（後ほど実装）
-  const customDomain = ''; 
+  // Viteの環境変数を優先的に取得
+  // @ts-ignore
+  const viteAccountHash = typeof import.meta !== 'undefined' && import.meta.env?.VITE_CLOUDFLARE_ACCOUNT_HASH;
+  // @ts-ignore
+  const viteCdnUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_IMAGE_CDN_URL;
 
-  if (customDomain) {
+  const finalAccountHash = accountHash || viteAccountHash || 'wdR9enbrkaPsEgUtgFORrw';
+
+  // カスタムドメイン（CDN Worker）が設定されている場合
+  if (viteCdnUrl) {
+    const baseUrl = viteCdnUrl.endsWith('/') ? viteCdnUrl.slice(0, -1) : viteCdnUrl;
     if (typeof variant === 'string') {
-      return `https://${customDomain}/${imageId}/${variant}`;
+      return `${baseUrl}/${imageId}/${variant}`;
     }
     const params = new URLSearchParams();
     if (variant.width) params.set('width', variant.width.toString());
@@ -24,11 +31,12 @@ export function getImageUrl(
     if (variant.quality) params.set('quality', variant.quality.toString());
     if (variant.format) params.set('format', variant.format);
     const queryString = params.toString();
-    return `https://${customDomain}/${imageId}/public${queryString ? '?' + queryString : ''}`;
+    return `${baseUrl}/${imageId}/public${queryString ? '?' + queryString : ''}`;
   }
 
+  // デフォルト（imagedelivery.net）
   if (typeof variant === 'string') {
-    return `https://imagedelivery.net/${accountHash}/${imageId}/${variant}`;
+    return `https://imagedelivery.net/${finalAccountHash}/${imageId}/${variant}`;
   }
 
   const params = new URLSearchParams();
@@ -39,7 +47,7 @@ export function getImageUrl(
   if (variant.format) params.set('format', variant.format);
 
   const queryString = params.toString();
-  return `https://imagedelivery.net/${accountHash}/${imageId}/public${queryString ? '?' + queryString : ''}`;
+  return `https://imagedelivery.net/${finalAccountHash}/${imageId}/public${queryString ? '?' + queryString : ''}`;
 }
 
 /**
