@@ -225,8 +225,8 @@ const Dashboard = () => {
 };
 
 // 認証設定
-const ADMIN_USERNAME = 'mn';
-const ADMIN_PASSWORD = '39';
+const ADMIN_USERNAME = import.meta.env.VITE_ADMIN_USERNAME;
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD;
 
 // レイアウトコンポーネント
 const Layout = ({ children }: { children: React.ReactNode }) => {
