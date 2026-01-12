@@ -85,7 +85,17 @@ app.post('/api/illustrations', zValidator('json', illustrationSchema), async (c)
   await c.env.DB.prepare(
     'INSERT INTO illustrations (id, work_id, title, slug, description, image_id, og_image_id, status, tags, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
   ).bind(
-    id, data.work_id, data.title, data.slug, data.description, data.image_id, data.og_image_id, data.status, JSON.stringify(data.tags), now, now
+    id, 
+    data.work_id, 
+    data.title, 
+    data.slug, 
+    data.description ?? null, 
+    data.image_id, 
+    data.og_image_id ?? null, 
+    data.status, 
+    JSON.stringify(data.tags), 
+    now, 
+    now
   ).run();
   
   const result = await c.env.DB.prepare('SELECT * FROM illustrations WHERE id = ?').bind(id).first();
@@ -168,7 +178,18 @@ app.post('/api/episodes', zValidator('json', episodeSchema), async (c) => {
   await c.env.DB.prepare(
     'INSERT INTO episodes (id, work_id, episode_number, title, slug, description, content, status, thumbnail_image_id, og_image_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
   ).bind(
-    id, data.work_id, data.episode_number, data.title, data.slug, data.description, data.content, data.status, data.thumbnail_image_id, data.og_image_id, now, now
+    id, 
+    data.work_id, 
+    data.episode_number, 
+    data.title, 
+    data.slug, 
+    data.description ?? null, 
+    data.content, 
+    data.status, 
+    data.thumbnail_image_id ?? null, 
+    data.og_image_id ?? null, 
+    now, 
+    now
   ).run();
   
   const result = await c.env.DB.prepare('SELECT * FROM episodes WHERE id = ?').bind(id).first();
