@@ -12,7 +12,8 @@ import EpisodeEditPage from './pages/EpisodeEdit';
 // 仮のダッシュボードページ
 const Dashboard = () => (
   <div className="p-6">
-    <h1 className="text-2xl font-bold mb-6">ダッシュボード</h1>
+    <h1 className="text-2xl font-bold mb-2">ダッシュボード</h1>
+    <p className="text-gray-400 mb-6">2026</p>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div className="glass p-6 rounded-2xl shadow-sm">
         <h3 className="text-gray-500 text-sm font-medium">作品数</h3>
