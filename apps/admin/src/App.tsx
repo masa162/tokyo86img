@@ -52,9 +52,11 @@ const Dashboard = () => {
       if (response.data.success && response.data.data) {
         setLastImageId(response.data.data.id);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload failed:', error);
-      alert('アップロードに失敗しました');
+      const data = error.response?.data;
+      const details = data?.details ? JSON.stringify(data.details) : (data?.error || error.message);
+      alert(`アップロードに失敗しました\n\n【詳細】\n${details}`);
     } finally {
       setUploading(false);
     }

@@ -225,8 +225,8 @@ app.post('/api/upload', async (c) => {
     if (!result.success) {
       return c.json({
         success: false,
-        error: 'Upload failed',
-        details: result.errors || result.messages
+        error: 'Cloudflare API error',
+        details: result.errors || result.messages || result
       }, 500);
     }
 
