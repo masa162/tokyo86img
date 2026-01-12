@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { illustrationsApi, worksApi, imageApi } from '@/lib/api';
 import type { Illustration, Work } from '@unbelong/shared';
 import { generateRandomSlug, generateSlug } from '@unbelong/shared';
-import { Save, ArrowLeft, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
+import { Save, ArrowLeft, Image as ImageIcon, Upload, Loader2, Grid } from 'lucide-react';
+import ImagePickerModal from './ImagePickerModal';
 
 interface IllustrationFormProps {
   illustration?: Illustration;
@@ -20,6 +21,7 @@ export default function IllustrationForm({
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
   const [works, setWorks] = useState<Work[]>([]);
+  const [showImagePicker, setShowImagePicker] = useState<'image_id' | 'og_image_id' | null>(null);
   const [formData, setFormData] = useState({
     work_id: illustration?.work_id || '',
     title: illustration?.title || '',
@@ -64,6 +66,15 @@ export default function IllustrationForm({
       alert('画像のアップロードに失敗しました');
     } finally {
       setUploading(null);
+    }
+  };
+
+  const handleImageSelect = (imageId: string) => {
+    if (showImagePicker) {
+      setFormData((prev) => ({
+        ...prev,
+        [showImagePicker]: imageId,
+      }));
     }
   };
 
@@ -133,6 +144,7 @@ export default function IllustrationForm({
   };
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl">
       <div className="flex items-center justify-between">
         <button
@@ -187,6 +199,14 @@ export default function IllustrationForm({
                 className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none"
               />
             </div>
+            <button
+              type="button"
+              onClick={() => setShowImagePicker('image_id')}
+              className="px-6 py-3 bg-primary-50 border border-primary-200 text-primary-600 rounded-xl hover:bg-primary-100 transition-all flex items-center shrink-0"
+            >
+              <Grid className="mr-2" size={18} />
+              ギャラリーから選択
+            </button>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
@@ -274,5 +294,12 @@ export default function IllustrationForm({
         )}
       </div>
     </form>
+
+    <ImagePickerModal
+      isOpen={showImagePicker !== null}
+      onClose={() => setShowImagePicker(null)}
+      onSelect={handleImageSelect}
+    />
+    </>
   );
 }

@@ -73,3 +73,52 @@ illust.unbelong.xyz
 でつかってる、D1、APIなど、
 流用してもいいすし、
 もしくは破棄して、再構築したほうが都合がいいでしょうか？
+
+
+cloudflare images API token 
+XyH9B43OVQ-vaFd1jpK7T-bdN8AO_k3kM7Yzfpoy
+
+です、設定お願いします
+
+
+cloudflare images API token 
+ダッシュボードから設定できました。
+imagesにアクセスして、そのassetを取得して、フロントに表示できていることが確認できました。
+しかし、uploadしようとすると、失敗します。
+デバッグお願いします
+
+
+4398998e-74bb-4eed-7e40-7074cd8fa900
+をuploadできたようです、
+
+uploadできている
+cloudflare imagesのassetsを
+ギャラリー表示、プレビューするUIを実装したい、
+
+作品数
+4
+
+エピソード数
+11
+
+イラスト数
+
+
+の下に、サムネイル一覧に表示したい
+
+OK,実装できていることを確認できました。
+
+https://unbelong-hono-admin.pages.dev/illustrations/new
+イラスト新規投稿のページにて、
+2f925880-4456-4a62-6883-cd1361895500
+を入力して、
+作成して詳細設定へ
+をクリック
+→失敗
+
+ID直接入力も慣れればいいかもしれないが、
+直感的にcloudflare imagesのassetsを選択するかたちにしたい
+
+
+***
+

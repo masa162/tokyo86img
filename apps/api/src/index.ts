@@ -59,9 +59,9 @@ const illustrationSchema = z.object({
   work_id: z.string(),
   title: z.string(),
   slug: z.string(),
-  description: z.string().nullable(),
+  description: z.string().nullable().optional(),
   image_id: z.string(),
-  og_image_id: z.string().nullable(),
+  og_image_id: z.string().nullable().optional(),
   status: z.enum(['draft', 'published', 'archived']),
   tags: z.array(z.string()),
 });
@@ -134,11 +134,11 @@ const episodeSchema = z.object({
   episode_number: z.number(),
   title: z.string(),
   slug: z.string(),
-  description: z.string().nullable(),
+  description: z.string().nullable().optional(),
   content: z.string(),
   status: z.enum(['draft', 'published', 'archived']),
-  thumbnail_image_id: z.string().nullable(),
-  og_image_id: z.string().nullable(),
+  thumbnail_image_id: z.string().nullable().optional(),
+  og_image_id: z.string().nullable().optional(),
 });
 
 app.get('/api/episodes', async (c) => {
