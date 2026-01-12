@@ -29,7 +29,7 @@ export default function IllustrationForm({
     description: illustration?.description || '',
     image_id: illustration?.image_id || '',
     og_image_id: illustration?.og_image_id || '',
-    status: illustration?.status || 'draft',
+    status: illustration?.status || 'published',
     tags: illustration?.tags ? JSON.stringify(JSON.parse(illustration.tags), null, 2) : '[]',
   });
 
@@ -289,6 +289,20 @@ export default function IllustrationForm({
                 rows={4}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">ステータス <span className="text-red-500">*</span></label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none"
+                required
+              >
+                <option value="published">公開</option>
+                <option value="draft">下書き</option>
+                <option value="archived">アーカイブ</option>
+              </select>
             </div>
           </div>
         )}
