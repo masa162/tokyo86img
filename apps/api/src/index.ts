@@ -17,10 +17,15 @@ const app = new Hono<{ Bindings: Bindings }>();
 // ミドルウェア
 app.use('*', logger());
 app.use('*', async (c, next) => {
-  const originStr = c.env.ALLOWED_ORIGINS || '*';
-  const origins = originStr.split(',');
+  const origin = c.req.header('Origin');
+  const allowedOrigins = (c.env.ALLOWED_ORIGINS || '*').split(',');
+  
+  const corsOrigin = (origin && (allowedOrigins.includes('*') || allowedOrigins.includes(origin))) 
+    ? origin 
+    : allowedOrigins[0];
+
   return cors({
-    origin: origins.includes('*') ? '*' : origins,
+    origin: corsOrigin,
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
     exposeHeaders: ['Content-Length'],
