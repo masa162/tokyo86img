@@ -1,3 +1,4 @@
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Image as ImageIcon, BookOpen, Settings, LogOut, Menu, Upload, Loader2, Copy, Check } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { imageApi } from './lib/api';
