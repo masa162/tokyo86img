@@ -97,7 +97,7 @@ const Dashboard = () => {
         <p className="text-gray-400 mb-6 font-mono text-sm">
           2026 - Production Environment 
           <span className="ml-4 px-2 py-0.5 bg-gray-100 rounded text-[10px] uppercase">
-            API: {import.meta.env.VITE_API_URL || 'Localhost (8787)'}
+            API: {import.meta.env.VITE_API_URL || 'https://unbelong-api.belong2jazz.workers.dev'}
           </span>
         </p>
       </div>

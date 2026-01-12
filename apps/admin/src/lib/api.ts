@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { ApiResponse, Work, Episode, Illustration, IllustrationInput, EpisodeInput } from '@unbelong/shared';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://unbelong-api.belong2jazz.workers.dev';
 
 const client = axios.create({
   baseURL: API_BASE_URL,
