@@ -82,8 +82,15 @@ app.get('/api/illustrations', async (c) => {
 });
 
 app.get('/api/illustrations/:id', async (c) => {
-  const id = c.req.param('id');
-  const result = await c.env.DB.prepare('SELECT * FROM illustrations WHERE id = ?').bind(id).first();
+  const idOrSlug = c.req.param('id');
+  // まず ID で検索
+  let result = await c.env.DB.prepare('SELECT * FROM illustrations WHERE id = ?').bind(idOrSlug).first();
+  
+  // 見つからない場合は slug で検索
+  if (!result) {
+    result = await c.env.DB.prepare('SELECT * FROM illustrations WHERE slug = ?').bind(idOrSlug).first();
+  }
+  
   return c.json({ success: true, data: result });
 });
 
