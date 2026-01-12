@@ -71,7 +71,12 @@ const Dashboard = () => {
     <div className="p-6 space-y-8">
       <div>
         <h1 className="text-2xl font-bold mb-2">ダッシュボード</h1>
-        <p className="text-gray-400 mb-6 font-mono text-sm">2026 - Production Environment</p>
+        <p className="text-gray-400 mb-6 font-mono text-sm">
+          2026 - Production Environment 
+          <span className="ml-4 px-2 py-0.5 bg-gray-100 rounded text-[10px] uppercase">
+            API: {import.meta.env.VITE_API_URL || 'Localhost (8787)'}
+          </span>
+        </p>
       </div>
 
       {/* クイックアップロードセクション */}
