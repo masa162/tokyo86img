@@ -224,10 +224,42 @@ const Dashboard = () => {
   );
 };
 
+// 認証設定
+const ADMIN_USERNAME = 'mn';
+const ADMIN_PASSWORD = '39';
+
 // レイアウトコンポーネント
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const location = useLocation();
+
+  useEffect(() => {
+    const auth = sessionStorage.getItem('admin_auth');
+    if (auth === 'true') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+      sessionStorage.setItem('admin_auth', 'true');
+      setIsAuthenticated(true);
+      setError('');
+    } else {
+      setError('ユーザー名またはパスワードが正しくありません');
+    }
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('admin_auth');
+    setIsAuthenticated(false);
+    window.location.href = '/';
+  };
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'ダッシュボード', path: '/' },
@@ -236,11 +268,60 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     { icon: Settings, label: '設定', path: '/settings' },
   ];
 
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-6">
+        <div className="glass p-8 rounded-3xl w-full max-w-md shadow-2xl shadow-primary-100/50 border border-primary-50">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-primary-500 mb-2">unbelong admin</h1>
+            <p className="text-gray-400 text-sm">管理者ログインが必要です</p>
+          </div>
+          
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-600 mb-2">ユーザー名</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-100 bg-white/50 focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+                placeholder="Username"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-600 mb-2">パスワード</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-100 bg-white/50 focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+                placeholder="Password"
+                required
+              />
+            </div>
+            
+            {error && (
+              <p className="text-red-500 text-xs font-medium text-center animate-shake">{error}</p>
+            )}
+
+            <button
+              type="submit"
+              className="w-full py-4 bg-primary-500 text-white rounded-2xl font-bold shadow-lg shadow-primary-200 hover:bg-primary-600 transition-all active:scale-95"
+            >
+              ログイン
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen w-full bg-[#f8fafc]">
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 glass transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 glass border-r border-white/50 transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-100">
           <span className="text-xl font-bold text-primary-500">unbelong <span className="text-xs text-gray-400 font-normal">v2</span></span>
           <button className="lg:hidden" onClick={() => setSidebarOpen(false)}>
             <Menu size={20} />
@@ -254,7 +335,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
                 location.pathname === item.path
                   ? 'bg-primary-500 text-white shadow-lg shadow-primary-200'
-                  : 'text-gray-600 hover:bg-white hover:shadow-sm'
+                  : 'text-gray-600 hover:bg-white hover:shadow-sm hover:translate-x-1'
               }`}
             >
               <item.icon size={20} />
@@ -263,8 +344,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           ))}
         </nav>
         <div className="absolute bottom-6 w-full px-4">
-          <button className="flex items-center space-x-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all w-full">
-            <LogOut size={20} />
+          <button 
+            onClick={handleLogout}
+            className="flex items-center space-x-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all w-full group"
+          >
+            <LogOut size={20} className="group-hover:-translate-x-1 transition-transform" />
             <span className="font-medium">ログアウト</span>
           </button>
         </div>
@@ -272,12 +356,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Main Content */}
       <main className="flex-1 min-w-0 overflow-auto">
-        <header className="h-16 glass flex items-center justify-between px-6 border-b border-gray-200 sticky top-0 z-40">
+        <header className="h-16 glass flex items-center justify-between px-6 border-b border-gray-100 sticky top-0 z-40">
           <button className="lg:hidden" onClick={() => setSidebarOpen(true)}>
             <Menu size={20} />
           </button>
           <div className="ml-auto flex items-center space-x-4">
-             <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold">M</div>
+             <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold border border-primary-200 shadow-sm">M</div>
           </div>
         </header>
         <div className="max-w-7xl mx-auto">
