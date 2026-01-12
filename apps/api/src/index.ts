@@ -123,8 +123,8 @@ app.delete('/api/illustrations/:id', async (c) => {
 app.get('/api/images', async (c) => {
   const db = c.env.DB;
   const { results } = await db.prepare(
-    'SELECT * FROM images WHERE status = ? ORDER BY created_at DESC LIMIT 100'
-  ).bind('active').all();
+    'SELECT * FROM images ORDER BY created_at DESC LIMIT 100'
+  ).all();
   return c.json({ success: true, data: results });
 });
 
@@ -248,11 +248,10 @@ app.post('/api/upload', async (c) => {
     // DB に画像を記録
     try {
       await c.env.DB.prepare(
-        'INSERT INTO images (id, filename, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?)'
+        'INSERT INTO images (id, filename, created_at, updated_at) VALUES (?, ?, ?, ?)'
       ).bind(
         imageId,
         filename,
-        'active',
         Math.floor(Date.now() / 1000),
         Math.floor(Date.now() / 1000)
       ).run();
