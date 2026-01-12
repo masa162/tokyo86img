@@ -1,6 +1,7 @@
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Image as ImageIcon, BookOpen, Settings, LogOut, Menu } from 'lucide-react';
-import { useState } from 'react';
+import { LayoutDashboard, Image as ImageIcon, BookOpen, Settings, LogOut, Menu, Upload, Loader2, Copy, Check } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { imageApi } from './lib/api';
+import { getImageUrl } from '@unbelong/shared';
 import IllustrationsPage from './pages/Illustrations';
 import IllustrationNewPage from './pages/IllustrationNew';
 import IllustrationEditPage from './pages/IllustrationEdit';
@@ -9,27 +10,126 @@ import EpisodesPage from './pages/Episodes';
 import EpisodeNewPage from './pages/EpisodeNew';
 import EpisodeEditPage from './pages/EpisodeEdit';
 
-// 仮のダッシュボードページ
-const Dashboard = () => (
-  <div className="p-6">
-    <h1 className="text-2xl font-bold mb-2">ダッシュボード</h1>
-    <p className="text-gray-400 mb-6">2026</p>
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div className="glass p-6 rounded-2xl shadow-sm">
-        <h3 className="text-gray-500 text-sm font-medium">作品数</h3>
-        <p className="text-3xl font-bold mt-2">12</p>
+// ダッシュボードページ
+const Dashboard = () => {
+  const [uploading, setUploading] = useState(false);
+  const [lastImageId, setLastImageId] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const response = await imageApi.upload(file);
+      if (response.data.success && response.data.data) {
+        setLastImageId(response.data.data.id);
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert('アップロードに失敗しました');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const copyToClipboard = () => {
+    if (!lastImageId) return;
+    navigator.clipboard.writeText(lastImageId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="p-6 space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold mb-2">ダッシュボード</h1>
+        <p className="text-gray-400 mb-6 font-mono text-sm">2026 - Production Environment</p>
       </div>
-      <div className="glass p-6 rounded-2xl shadow-sm">
-        <h3 className="text-gray-500 text-sm font-medium">エピソード数</h3>
-        <p className="text-3xl font-bold mt-2">154</p>
+
+      {/* クイックアップロードセクション */}
+      <div className="glass p-8 rounded-3xl border border-primary-100 shadow-xl shadow-primary-50/50">
+        <h2 className="text-lg font-bold mb-4 flex items-center">
+          <Upload className="mr-2 text-primary-500" size={20} />
+          クイック画像アップロード
+        </h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div className="space-y-4">
+            <p className="text-sm text-gray-500">
+              Cloudflare Images に直接画像をアップロードして、ID を取得できます。
+              投稿前に画像を準備する際にお使いください。
+            </p>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleUpload}
+              accept="image/*"
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="w-full flex items-center justify-center px-6 py-4 bg-primary-500 text-white rounded-2xl shadow-lg shadow-primary-200 hover:bg-primary-600 transition-all font-bold disabled:opacity-50"
+            >
+              {uploading ? (
+                <Loader2 className="animate-spin mr-2" size={20} />
+              ) : (
+                <Upload className="mr-2" size={20} />
+              )}
+              {uploading ? 'アップロード中...' : '画像を選択してアップロード'}
+            </button>
+          </div>
+
+          <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-3xl p-6 min-h-[200px] bg-gray-50/50">
+            {lastImageId ? (
+              <div className="w-full space-y-4 animate-in zoom-in-95 duration-300">
+                <div className="relative group aspect-video rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm">
+                  <img
+                    src={getImageUrl(lastImageId, { width: 400 })}
+                    alt="Uploaded preview"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div className="flex items-center gap-2 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+                  <code className="flex-1 text-xs font-mono text-gray-600 truncate">{lastImageId}</code>
+                  <button
+                    onClick={copyToClipboard}
+                    className={`p-2 rounded-lg transition-all ${copied ? 'bg-green-500 text-white' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}
+                  >
+                    {copied ? <Check size={16} /> : <Copy size={16} />}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center">
+                <ImageIcon className="mx-auto text-gray-200 mb-2" size={48} />
+                <p className="text-xs text-gray-400">プレビューがここに表示されます</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-      <div className="glass p-6 rounded-2xl shadow-sm">
-        <h3 className="text-gray-500 text-sm font-medium">イラスト数</h3>
-        <p className="text-3xl font-bold mt-2">48</p>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="glass p-6 rounded-2xl shadow-sm">
+          <h3 className="text-gray-500 text-sm font-medium">作品数</h3>
+          <p className="text-3xl font-bold mt-2">12</p>
+        </div>
+        <div className="glass p-6 rounded-2xl shadow-sm">
+          <h3 className="text-gray-500 text-sm font-medium">エピソード数</h3>
+          <p className="text-3xl font-bold mt-2">154</p>
+        </div>
+        <div className="glass p-6 rounded-2xl shadow-sm">
+          <h3 className="text-gray-500 text-sm font-medium">イラスト数</h3>
+          <p className="text-3xl font-bold mt-2">48</p>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // レイアウトコンポーネント
 const Layout = ({ children }: { children: React.ReactNode }) => {
