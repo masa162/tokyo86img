@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Image as ImageIcon, BookOpen, Settings, LogOut, Menu, Upload, Loader2, Copy, Check } from 'lucide-react';
-import { useState, useRef } from 'react';
-import { imageApi } from './lib/api';
+import { useState, useRef, useEffect } from 'react';
+import { imageApi, worksApi, episodesApi, illustrationsApi } from './lib/api';
 import { getImageUrl } from '@unbelong/shared';
 import IllustrationsPage from './pages/Illustrations';
 import IllustrationNewPage from './pages/IllustrationNew';
@@ -16,7 +16,31 @@ const Dashboard = () => {
   const [uploading, setUploading] = useState(false);
   const [lastImageId, setLastImageId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [stats, setStats] = useState({ works: 0, episodes: 0, illustrations: 0 });
+  const [loadingStats, setLoadingStats] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [works, episodes, illustrations] = await Promise.all([
+          worksApi.list(),
+          episodesApi.list(),
+          illustrationsApi.list()
+        ]);
+        setStats({
+          works: works.data.data?.length || 0,
+          episodes: episodes.data.data?.length || 0,
+          illustrations: illustrations.data.data?.length || 0,
+        });
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -117,15 +141,15 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="glass p-6 rounded-2xl shadow-sm">
           <h3 className="text-gray-500 text-sm font-medium">作品数</h3>
-          <p className="text-3xl font-bold mt-2">12</p>
+          <p className="text-3xl font-bold mt-2">{loadingStats ? '...' : stats.works}</p>
         </div>
         <div className="glass p-6 rounded-2xl shadow-sm">
           <h3 className="text-gray-500 text-sm font-medium">エピソード数</h3>
-          <p className="text-3xl font-bold mt-2">154</p>
+          <p className="text-3xl font-bold mt-2">{loadingStats ? '...' : stats.episodes}</p>
         </div>
         <div className="glass p-6 rounded-2xl shadow-sm">
           <h3 className="text-gray-500 text-sm font-medium">イラスト数</h3>
-          <p className="text-3xl font-bold mt-2">48</p>
+          <p className="text-3xl font-bold mt-2">{loadingStats ? '...' : stats.illustrations}</p>
         </div>
       </div>
     </div>
