@@ -119,6 +119,15 @@ app.delete('/api/illustrations/:id', async (c) => {
   return c.json({ success: true });
 });
 
+// --- Images API ---
+app.get('/api/images', async (c) => {
+  const db = c.env.DB;
+  const { results } = await db.prepare(
+    'SELECT * FROM images WHERE status = ? ORDER BY created_at DESC LIMIT 100'
+  ).bind('active').all();
+  return c.json({ success: true, data: results });
+});
+
 // --- Episodes API ---
 const episodeSchema = z.object({
   work_id: z.string(),
@@ -202,8 +211,11 @@ app.post('/api/upload', async (c) => {
     const accountId = c.env.CLOUDFLARE_ACCOUNT_ID;
     const apiToken = c.env.CLOUDFLARE_IMAGES_API_TOKEN;
 
-    if (!accountId || !apiToken) {
-      return c.json({ success: false, error: 'Cloudflare API configuration missing' }, 500);
+    if (!accountId) {
+      return c.json({ success: false, error: 'CLOUDFLARE_ACCOUNT_ID is missing' }, 500);
+    }
+    if (!apiToken) {
+      return c.json({ success: false, error: 'CLOUDFLARE_IMAGES_API_TOKEN is missing' }, 500);
     }
 
     const uploadFormData = new FormData();
@@ -230,11 +242,29 @@ app.post('/api/upload', async (c) => {
       }, 500);
     }
 
+    const imageId = result.result.id;
+    const filename = result.result.filename || file.name;
+
+    // DB に画像を記録
+    try {
+      await c.env.DB.prepare(
+        'INSERT INTO images (id, filename, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?)'
+      ).bind(
+        imageId,
+        filename,
+        'active',
+        Math.floor(Date.now() / 1000),
+        Math.floor(Date.now() / 1000)
+      ).run();
+    } catch (dbError) {
+      console.error('Failed to record image in DB:', dbError);
+    }
+
     return c.json({
       success: true,
       data: {
-        id: result.result.id,
-        filename: result.result.filename,
+        id: imageId,
+        filename: filename,
         variants: result.result.variants,
       },
     });

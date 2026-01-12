@@ -18,6 +18,8 @@ const Dashboard = () => {
   const [copied, setCopied] = useState(false);
   const [stats, setStats] = useState({ works: 0, episodes: 0, illustrations: 0 });
   const [loadingStats, setLoadingStats] = useState(true);
+  const [images, setImages] = useState<any[]>([]);
+  const [loadingImages, setLoadingImages] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -39,7 +41,22 @@ const Dashboard = () => {
         setLoadingStats(false);
       }
     };
+
+    const fetchImages = async () => {
+      try {
+        const response = await imageApi.list();
+        if (response.data.success) {
+          setImages(response.data.data || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch images:', error);
+      } finally {
+        setLoadingImages(false);
+      }
+    };
+
     fetchStats();
+    fetchImages();
   }, []);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,6 +68,11 @@ const Dashboard = () => {
       const response = await imageApi.upload(file);
       if (response.data.success && response.data.data) {
         setLastImageId(response.data.data.id);
+        // ギャラリーを再取得
+        const imgRes = await imageApi.list();
+        if (imgRes.data.success) {
+          setImages(imgRes.data.data || []);
+        }
       }
     } catch (error: any) {
       console.error('Upload failed:', error);
@@ -62,9 +84,8 @@ const Dashboard = () => {
     }
   };
 
-  const copyToClipboard = () => {
-    if (!lastImageId) return;
-    navigator.clipboard.writeText(lastImageId);
+  const copyToClipboard = (id: string) => {
+    navigator.clipboard.writeText(id);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -128,7 +149,7 @@ const Dashboard = () => {
                 <div className="flex items-center gap-2 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
                   <code className="flex-1 text-xs font-mono text-gray-600 truncate">{lastImageId}</code>
                   <button
-                    onClick={copyToClipboard}
+                    onClick={() => copyToClipboard(lastImageId)}
                     className={`p-2 rounded-lg transition-all ${copied ? 'bg-green-500 text-white' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}
                   >
                     {copied ? <Check size={16} /> : <Copy size={16} />}
@@ -158,6 +179,46 @@ const Dashboard = () => {
           <h3 className="text-gray-500 text-sm font-medium">イラスト数</h3>
           <p className="text-3xl font-bold mt-2">{loadingStats ? '...' : stats.illustrations}</p>
         </div>
+      </div>
+
+      {/* 画像ギャラリーセクション */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-bold flex items-center">
+          <ImageIcon className="mr-2 text-primary-500" size={20} />
+          最近のアップロード（ギャラリー）
+        </h2>
+        
+        {loadingImages ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="aspect-square bg-gray-100 rounded-xl animate-pulse" />
+            ))}
+          </div>
+        ) : images.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {images.map((img) => (
+              <div key={img.id} className="group relative aspect-square bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all">
+                <img
+                  src={getImageUrl(img.id, { width: 200, height: 200, fit: 'cover' })}
+                  alt={img.filename}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-x-0 bottom-0 p-2 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => copyToClipboard(img.id)}
+                    className="w-full py-1 text-[10px] bg-white/20 hover:bg-white/40 text-white rounded backdrop-blur-md transition-colors"
+                  >
+                    IDをコピー
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+            <p className="text-gray-400">まだアップロードされた画像はありません</p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -54,6 +54,8 @@ export const imageApi = {
       },
     });
   },
+  list: () => 
+    client.get<ApiResponse<any[]>>('/api/images'),
 };
 
 export default client;
