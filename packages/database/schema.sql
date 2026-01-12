@@ -81,12 +81,31 @@ CREATE TABLE IF NOT EXISTS images (
   format TEXT,
   size INTEGER, -- バイト数
   uploaded_by TEXT,
+  batch_id TEXT, -- バッチID (例: a7k9m2)
+  sequence_number INTEGER, -- バッチ内の連番 (001-999)
   created_at INTEGER NOT NULL DEFAULT (unixepoch()),
   updated_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
 CREATE INDEX idx_images_filename ON images(filename);
 CREATE INDEX idx_images_created_at ON images(created_at);
+CREATE INDEX idx_images_batch_id ON images(batch_id);
+
+-- 画像バッチテーブル
+CREATE TABLE IF NOT EXISTS image_batches (
+  id TEXT PRIMARY KEY,
+  batch_id TEXT NOT NULL UNIQUE, -- 6桁ランダム英数字 (例: a7k9m2)
+  name TEXT, -- オプション: ユーザー指定の名前
+  description TEXT,
+  episode_id TEXT, -- オプション: 関連エピソード
+  total_images INTEGER NOT NULL DEFAULT 0,
+  created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+  updated_at INTEGER NOT NULL DEFAULT (unixepoch()),
+  FOREIGN KEY (episode_id) REFERENCES episodes(id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_image_batches_batch_id ON image_batches(batch_id);
+CREATE INDEX idx_image_batches_episode_id ON image_batches(episode_id);
 
 -- コメントテーブル
 CREATE TABLE IF NOT EXISTS comments (

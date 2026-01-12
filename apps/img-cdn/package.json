@@ -1,0 +1,13 @@
+{
+  "name": "@unbelong/img-cdn",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "deploy": "wrangler deploy src/index.ts",
+    "dev": "wrangler dev src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Cloudflare Worker for custom image CDN URLs"
+}

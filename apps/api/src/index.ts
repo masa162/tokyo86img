@@ -5,6 +5,16 @@ import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { getUnixTimestamp } from '@unbelong/shared';
 
+// 6桁のランダム英数字を生成
+function generateBatchId(): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < 6; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
 type Bindings = {
   DB: D1Database;
   ALLOWED_ORIGINS: string;
@@ -296,6 +306,156 @@ app.post('/api/upload', async (c) => {
       details: error instanceof Error ? error.message : String(error)
     }, 500);
   }
+});
+
+// --- Batch API ---
+// バッチ作成
+app.post('/api/batches', async (c) => {
+  const db = c.env.DB;
+  const body = await c.req.json();
+  const id = crypto.randomUUID();
+  let batchId = generateBatchId();
+  
+  // 衝突チェック（念のため）
+  let attempts = 0;
+  while (attempts < 5) {
+    const existing = await db.prepare('SELECT id FROM image_batches WHERE batch_id = ?').bind(batchId).first();
+    if (!existing) break;
+    batchId = generateBatchId();
+    attempts++;
+  }
+  
+  const now = getUnixTimestamp();
+  await db.prepare(
+    'INSERT INTO image_batches (id, batch_id, name, description, episode_id, total_images, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+  ).bind(id, batchId, body.name || null, body.description || null, body.episode_id || null, 0, now, now).run();
+  
+  const result = await db.prepare('SELECT * FROM image_batches WHERE id = ?').bind(id).first();
+  return c.json({ success: true, data: result });
+});
+
+// バッチ一覧取得
+app.get('/api/batches', async (c) => {
+  const db = c.env.DB;
+  const { results } = await db.prepare('SELECT * FROM image_batches ORDER BY created_at DESC').all();
+  return c.json({ success: true, data: results });
+});
+
+// バッチ詳細取得
+app.get('/api/batches/:batchId', async (c) => {
+  const db = c.env.DB;
+  const batchId = c.req.param('batchId');
+  
+  const batch = await db.prepare('SELECT * FROM image_batches WHERE batch_id = ?').bind(batchId).first();
+  if (!batch) {
+    return c.json({ success: false, error: 'Batch not found' }, 404);
+  }
+  
+  const { results: images } = await db.prepare(
+    'SELECT * FROM images WHERE batch_id = ? ORDER BY sequence_number ASC'
+  ).bind(batchId).all();
+  
+  return c.json({ success: true, data: { ...batch, images } });
+});
+
+// バッチへの画像アップロード
+app.post('/api/batches/:batchId/upload', async (c) => {
+  const db = c.env.DB;
+  const batchId = c.req.param('batchId');
+  const accountId = c.env.CLOUDFLARE_ACCOUNT_ID;
+  const apiToken = c.env.CLOUDFLARE_IMAGES_API_TOKEN;
+  
+  // バッチの存在確認
+  const batch = await db.prepare('SELECT * FROM image_batches WHERE batch_id = ?').bind(batchId).first<any>();
+  if (!batch) {
+    return c.json({ success: false, error: 'Batch not found' }, 404);
+  }
+  
+  const formData = await c.req.formData();
+  const files = formData.getAll('files');
+  
+  if (files.length === 0) {
+    return c.json({ success: false, error: 'No files provided' }, 400);
+  }
+  
+  const uploadedImages = [];
+  let currentSequence = batch.total_images + 1;
+  
+  for (const fileEntry of files) {
+    if (typeof fileEntry === 'string') continue;
+    const file = fileEntry as File;
+    try {
+      // Cloudflare Images にアップロード
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      
+      const response = await fetch(
+        `https://api.cloudflare.com/client/v4/accounts/${accountId}/images/v1`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiToken}`,
+          },
+          body: uploadFormData,
+        }
+      );
+      
+      const result: any = await response.json();
+      
+      if (!result.success) {
+        console.error('Cloudflare upload failed:', result);
+        continue;
+      }
+      
+      const imageId = result.result.id;
+      const filename = result.result.filename || file.name;
+      const now = getUnixTimestamp();
+      
+      // DB に画像を記録
+      await db.prepare(
+        'INSERT INTO images (id, filename, batch_id, sequence_number, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
+      ).bind(imageId, filename, batchId, currentSequence, now, now).run();
+      
+      uploadedImages.push({
+        id: imageId,
+        filename,
+        sequence_number: currentSequence
+      });
+      
+      currentSequence++;
+    } catch (error) {
+      console.error('Upload error for file:', file.name, error);
+    }
+  }
+  
+  // バッチの total_images を更新
+  await db.prepare(
+    'UPDATE image_batches SET total_images = ?, updated_at = ? WHERE batch_id = ?'
+  ).bind(currentSequence - 1, getUnixTimestamp(), batchId).run();
+  
+  return c.json({ success: true, data: uploadedImages });
+});
+
+// Markdown 生成
+app.get('/api/batches/:batchId/markdown', async (c) => {
+  const db = c.env.DB;
+  const batchId = c.req.param('batchId');
+  const baseUrl = c.req.query('baseUrl') || `https://img.unbelong.xyz`;
+  
+  const { results: images } = await db.prepare(
+    'SELECT sequence_number FROM images WHERE batch_id = ? ORDER BY sequence_number ASC'
+  ).bind(batchId).all<{ sequence_number: number }>();
+  
+  if (!images || images.length === 0) {
+    return c.json({ success: false, error: 'No images found' }, 404);
+  }
+  
+  const markdown = images.map(img => {
+    const seq = String(img.sequence_number).padStart(3, '0');
+    return `![](${baseUrl}/${batchId}/${seq}.webp)`;
+  }).join('\n');
+  
+  return c.json({ success: true, data: { markdown } });
 });
 
 export default app;
