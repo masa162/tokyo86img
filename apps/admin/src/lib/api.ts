@@ -58,4 +58,24 @@ export const imageApi = {
     client.get<ApiResponse<any[]>>('/api/images'),
 };
 
+export const batchesApi = {
+  list: () => 
+    client.get<ApiResponse<any[]>>('/api/batches'),
+  get: (batchId: string) => 
+    client.get<ApiResponse<any>>(`/api/batches/${batchId}`),
+  create: (data: { name?: string; description?: string; episode_id?: string }) => 
+    client.post<ApiResponse<any>>('/api/batches', data),
+  upload: (batchId: string, files: File[]) => {
+    const formData = new FormData();
+    files.forEach(file => formData.append('files', file));
+    return client.post<ApiResponse<any>>(`/api/batches/${batchId}/upload`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  getMarkdown: (batchId: string) => 
+    client.get<ApiResponse<{ markdown: string }>>(`/api/batches/${batchId}/markdown`),
+};
+
 export default client;

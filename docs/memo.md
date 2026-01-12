@@ -531,3 +531,16 @@ https://comic.unbelong.xyz/
 たぶん、geminiバカだから、コンテキスト保持できてないでしょ？
 お前馬鹿だもんな、できてるなら、
 文書化しろ、
+
+
+/Users/nakayamamasayuki/Documents/GitHub/unbelong/docs/IMAGE_MANAGEMENT_LOGIC.md
+確認しました。
+まあ、いえばわかるじゃんか、まあ悪くないよ
+
+まあ、gemini3の今のところの、馬鹿さがよくわかったよ、
+それを踏まえて、私もその都度指示を明確にする、
+文書化することを肝に銘じるよ
+クソツールだからなgemini3 on antigravityは
+
+
+もう
