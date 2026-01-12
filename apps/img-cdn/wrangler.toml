@@ -9,4 +9,4 @@ database_name = "unbelong-db"
 database_id = "60316b26-074e-4fd3-a06b-272bc198b6b1"
 
 [vars]
-CLOUDFLARE_ACCOUNT_HASH = "xxx" # Cloudflare Images のアカウントハッシュ
+CLOUDFLARE_ACCOUNT_HASH = "wdR9enbrkaPsEgUtgFORrw"
