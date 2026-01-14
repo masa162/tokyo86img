@@ -358,7 +358,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
 
   useEffect(() => {
-    const auth = sessionStorage.getItem('admin_auth');
+    const auth = localStorage.getItem('admin_auth');
     if (auth === 'true') {
       setIsAuthenticated(true);
     }
@@ -367,7 +367,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      sessionStorage.setItem('admin_auth', 'true');
+      localStorage.setItem('admin_auth', 'true');
       setIsAuthenticated(true);
       setError('');
     } else {
@@ -376,7 +376,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem('admin_auth');
+    localStorage.removeItem('admin_auth');
     setIsAuthenticated(false);
     window.location.href = '/';
   };
