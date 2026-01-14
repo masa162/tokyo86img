@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { worksApi } from '@/lib/api';
+import { getImageUrl } from '@/lib/utils';
 import type { Work } from '@unbelong/shared';
 import { Plus, Book, Image as ImageIcon, ChevronRight, Edit2, Trash2 } from 'lucide-react';
 
@@ -74,8 +75,16 @@ export default function WorksPage() {
                   className="glass p-4 rounded-2xl flex items-center justify-between hover:shadow-md transition-all group-hover:border-primary-200"
                 >
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 rounded-lg bg-primary-50 flex items-center justify-center text-primary-500">
-                      <Book size={24} />
+                    <div className="w-16 h-16 rounded-lg bg-primary-50 flex items-center justify-center text-primary-500 overflow-hidden border border-gray-100">
+                      {work.thumbnail_image_id ? (
+                        <img 
+                          src={getImageUrl(work.thumbnail_image_id, { width: 120, fit: 'cover' })} 
+                          alt="" 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Book size={24} />
+                      )}
                     </div>
                     <div>
                       <h3 className="font-bold group-hover:text-primary-500 transition-colors">{work.title}</h3>
@@ -121,8 +130,16 @@ export default function WorksPage() {
                 className="glass p-4 rounded-2xl flex items-center justify-between hover:shadow-md transition-all group"
               >
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 rounded-lg bg-primary-50 flex items-center justify-center text-primary-500">
-                    <ImageIcon size={24} />
+                  <div className="w-16 h-16 rounded-lg bg-primary-50 flex items-center justify-center text-primary-500 overflow-hidden border border-gray-100">
+                    {work.thumbnail_image_id ? (
+                      <img 
+                        src={getImageUrl(work.thumbnail_image_id, { width: 120, fit: 'cover' })} 
+                        alt="" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <ImageIcon size={24} />
+                    )}
                   </div>
                   <div>
                     <h3 className="font-bold group-hover:text-primary-500 transition-colors">{work.title}</h3>
