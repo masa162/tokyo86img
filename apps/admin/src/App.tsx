@@ -352,6 +352,15 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               ログイン
             </button>
           </form>
+
+          <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-center gap-4">
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${ADMIN_USERNAME ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+              User: {ADMIN_USERNAME ? 'Set' : 'Missing'}
+            </span>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${ADMIN_PASSWORD ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+              Pass: {ADMIN_PASSWORD ? 'Set' : 'Missing'}
+            </span>
+          </div>
         </div>
       </div>
     );
