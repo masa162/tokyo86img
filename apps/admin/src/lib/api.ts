@@ -76,6 +76,8 @@ export const batchesApi = {
   },
   getMarkdown: (batchId: string) => 
     client.get<ApiResponse<{ markdown: string }>>(`/api/batches/${batchId}/markdown`),
+  delete: (batchId: string) => 
+    client.delete<ApiResponse<void>>(`/api/batches/${batchId}`),
 };
 
 export default client;

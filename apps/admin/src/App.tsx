@@ -11,6 +11,7 @@ import EpisodesPage from './pages/Episodes';
 import EpisodeNewPage from './pages/EpisodeNew';
 import EpisodeEditPage from './pages/EpisodeEdit';
 import BatchUpload from './pages/BatchUpload';
+import BatchesPage from './pages/Batches';
 
 // ダッシュボードページ
 const Dashboard = () => {
@@ -307,7 +308,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     { icon: LayoutDashboard, label: 'ダッシュボード', path: '/' },
     { icon: BookOpen, label: '作品・マンガ', path: '/works' },
     { icon: ImageIcon, label: 'イラスト', path: '/illustrations' },
-    { icon: Upload, label: 'バッチ画像投稿', path: '/batches/new' },
+    { icon: Upload, label: '画像バッチ一覧', path: '/batches' },
     { icon: Settings, label: '設定', path: '/settings' },
   ];
 
@@ -437,6 +438,7 @@ function App() {
           <Route path="/illustrations/:id/edit" element={<IllustrationEditPage />} />
           <Route path="/episodes/new" element={<EpisodeNewPage />} />
           <Route path="/episodes/:id/edit" element={<EpisodeEditPage />} />
+          <Route path="/batches" element={<BatchesPage />} />
           <Route path="/batches/new" element={<BatchUpload />} />
           <Route path="/settings" element={<div className="p-6">Settings Page (Coming Soon)</div>} />
         </Routes>

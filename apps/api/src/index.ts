@@ -465,4 +465,24 @@ app.get('/api/batches/:batchId/markdown', async (c) => {
   return c.json({ success: true, data: { markdown } });
 });
 
+// バッチ削除
+app.delete('/api/batches/:batchId', async (c) => {
+  const db = c.env.DB;
+  const batchId = c.req.param('batchId');
+  
+  // バッチの存在確認
+  const batch = await db.prepare('SELECT * FROM image_batches WHERE batch_id = ?').bind(batchId).first();
+  if (!batch) {
+    return c.json({ success: false, error: 'Batch not found' }, 404);
+  }
+  
+  // 画像レコードを削除（Cloudflare Imagesの実体は残すが、DB上のバッチとの紐付けを消す）
+  await db.prepare('DELETE FROM images WHERE batch_id = ?').bind(batchId).run();
+  
+  // バッチレコードを削除
+  await db.prepare('DELETE FROM image_batches WHERE batch_id = ?').bind(batchId).run();
+  
+  return c.json({ success: true, data: null });
+});
+
 export default app;
