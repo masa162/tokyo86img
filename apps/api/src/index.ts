@@ -323,7 +323,6 @@ app.post('/api/batches', async (c) => {
   const id = crypto.randomUUID();
   let batchId = generateBatchId();
   
-  // 衝突チェック（念のため）
   let attempts = 0;
   while (attempts < 5) {
     const existing = await db.prepare('SELECT id FROM image_batches WHERE batch_id = ?').bind(batchId).first();
@@ -352,16 +351,10 @@ app.get('/api/batches', async (c) => {
 app.get('/api/batches/:batchId', async (c) => {
   const db = c.env.DB;
   const batchId = c.req.param('batchId');
-  
   const batch = await db.prepare('SELECT * FROM image_batches WHERE batch_id = ?').bind(batchId).first();
-  if (!batch) {
-    return c.json({ success: false, error: 'Batch not found' }, 404);
-  }
+  if (!batch) return c.json({ success: false, error: 'Batch not found' }, 404);
   
-  const { results: images } = await db.prepare(
-    'SELECT * FROM images WHERE batch_id = ? ORDER BY sequence_number ASC'
-  ).bind(batchId).all();
-  
+  const { results: images } = await db.prepare('SELECT * FROM images WHERE batch_id = ? ORDER BY sequence_number ASC').bind(batchId).all();
   return c.json({ success: true, data: { ...batch, images } });
 });
 
@@ -372,18 +365,12 @@ app.post('/api/batches/:batchId/upload', async (c) => {
   const accountId = c.env.CLOUDFLARE_ACCOUNT_ID;
   const apiToken = c.env.CLOUDFLARE_IMAGES_API_TOKEN;
   
-  // バッチの存在確認
   const batch = await db.prepare('SELECT * FROM image_batches WHERE batch_id = ?').bind(batchId).first<any>();
-  if (!batch) {
-    return c.json({ success: false, error: 'Batch not found' }, 404);
-  }
+  if (!batch) return c.json({ success: false, error: 'Batch not found' }, 404);
   
   const formData = await c.req.formData();
   const files = formData.getAll('files');
-  
-  if (files.length === 0) {
-    return c.json({ success: false, error: 'No files provided' }, 400);
-  }
+  if (files.length === 0) return c.json({ success: false, error: 'No files provided' }, 400);
   
   const uploadedImages = [];
   let currentSequence = batch.total_images + 1;
@@ -392,53 +379,29 @@ app.post('/api/batches/:batchId/upload', async (c) => {
     if (typeof fileEntry === 'string') continue;
     const file = fileEntry as File;
     try {
-      // Cloudflare Images にアップロード
       const uploadFormData = new FormData();
       uploadFormData.append('file', file);
-      
-      const response = await fetch(
-        `https://api.cloudflare.com/client/v4/accounts/${accountId}/images/v1`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${apiToken}`,
-          },
-          body: uploadFormData,
-        }
-      );
-      
+      const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/images/v1`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${apiToken}` },
+        body: uploadFormData,
+      });
       const result: any = await response.json();
-      
-      if (!result.success) {
-        console.error('Cloudflare upload failed:', result);
-        continue;
-      }
+      if (!result.success) continue;
       
       const imageId = result.result.id;
       const filename = result.result.filename || file.name;
       const now = getUnixTimestamp();
+      await db.prepare('INSERT INTO images (id, filename, batch_id, sequence_number, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')
+        .bind(imageId, filename, batchId, currentSequence, now, now).run();
       
-      // DB に画像を記録
-      await db.prepare(
-        'INSERT INTO images (id, filename, batch_id, sequence_number, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
-      ).bind(imageId, filename, batchId, currentSequence, now, now).run();
-      
-      uploadedImages.push({
-        id: imageId,
-        filename,
-        sequence_number: currentSequence
-      });
-      
+      uploadedImages.push({ id: imageId, filename, sequence_number: currentSequence });
       currentSequence++;
-    } catch (error) {
-      console.error('Upload error for file:', file.name, error);
-    }
+    } catch (error) { console.error('Upload error:', error); }
   }
   
-  // バッチの total_images を更新
-  await db.prepare(
-    'UPDATE image_batches SET total_images = ?, updated_at = ? WHERE batch_id = ?'
-  ).bind(currentSequence - 1, getUnixTimestamp(), batchId).run();
+  await db.prepare('UPDATE image_batches SET total_images = ?, updated_at = ? WHERE batch_id = ?')
+    .bind(currentSequence - 1, getUnixTimestamp(), batchId).run();
   
   return c.json({ success: true, data: uploadedImages });
 });
@@ -449,19 +412,10 @@ app.get('/api/batches/:batchId/markdown', async (c) => {
   const batchId = c.req.param('batchId');
   const baseUrl = c.req.query('baseUrl') || `https://img.unbelong.xyz`;
   
-  const { results: images } = await db.prepare(
-    'SELECT sequence_number FROM images WHERE batch_id = ? ORDER BY sequence_number ASC'
-  ).bind(batchId).all<{ sequence_number: number }>();
+  const { results: images } = await db.prepare('SELECT sequence_number FROM images WHERE batch_id = ? ORDER BY sequence_number ASC').bind(batchId).all<{ sequence_number: number }>();
+  if (!images || images.length === 0) return c.json({ success: false, error: 'No images found' }, 404);
   
-  if (!images || images.length === 0) {
-    return c.json({ success: false, error: 'No images found' }, 404);
-  }
-  
-  const markdown = images.map(img => {
-    const seq = String(img.sequence_number).padStart(3, '0');
-    return `![](${baseUrl}/${batchId}/${seq}.webp)`;
-  }).join('\n');
-  
+  const markdown = images.map(img => `![](${baseUrl}/${batchId}/${String(img.sequence_number).padStart(3, '0')}.webp)`).join('\n');
   return c.json({ success: true, data: { markdown } });
 });
 
@@ -472,135 +426,87 @@ app.delete('/api/batches/:batchId', async (c) => {
   const accountId = c.env.CLOUDFLARE_ACCOUNT_ID;
   const apiToken = c.env.CLOUDFLARE_IMAGES_API_TOKEN;
   
-  // バッチの存在確認
   const batch = await db.prepare('SELECT * FROM image_batches WHERE batch_id = ?').bind(batchId).first();
-  if (!batch) {
-    return c.json({ success: false, error: 'Batch not found' }, 404);
-  }
+  if (!batch) return c.json({ success: false, error: 'Batch not found' }, 404);
   
-  // バッチに紐づく全ての画像IDを取得
   const { results: images } = await db.prepare('SELECT id FROM images WHERE batch_id = ?').bind(batchId).all<{ id: string }>();
-
-  // Cloudflare Images から各画像を削除
   if (images && images.length > 0) {
     for (const img of images) {
       try {
-        await fetch(
-          `https://api.cloudflare.com/client/v4/accounts/${accountId}/images/v1/${img.id}`,
-          {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${apiToken}`,
-            },
-          }
-        );
-      } catch (error) {
-        console.error(`Failed to delete image ${img.id} during batch deletion:`, error);
-      }
+        await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/images/v1/${img.id}`, {
+          method: 'DELETE', headers: { 'Authorization': `Bearer ${apiToken}` }
+        });
+      } catch (e) { console.error(`Failed to delete image ${img.id}`); }
     }
   }
   
-  // 画像レコードを削除
   await db.prepare('DELETE FROM images WHERE batch_id = ?').bind(batchId).run();
-  
-  // バッチレコードを削除
   await db.prepare('DELETE FROM image_batches WHERE batch_id = ?').bind(batchId).run();
-  
-  return c.json({ success: true, data: null });
+  return c.json({ success: true });
 });
 
+// --- Image API ---
 // 画像一覧取得
 app.get('/api/images', async (c) => {
-  const db = c.env.DB;
-  const { results } = await db.prepare('SELECT * FROM images ORDER BY created_at DESC LIMIT 100').all();
+  const { results } = await c.env.DB.prepare('SELECT * FROM images ORDER BY created_at DESC LIMIT 100').all();
   return c.json({ success: true, data: results });
 });
 
-// 個別画像削除（D1レコード + Cloudflare Images実体 を完全に削除）
+// 個別画像削除
 app.delete('/api/images/:id', async (c) => {
   const db = c.env.DB;
   const imageId = c.req.param('id');
   const accountId = c.env.CLOUDFLARE_ACCOUNT_ID;
   const apiToken = c.env.CLOUDFLARE_IMAGES_API_TOKEN;
 
-  if (!accountId || !apiToken) {
-    return c.json({ success: false, error: 'Cloudflare configuration (ID or Token) is missing' }, 500);
-  }
+  if (!accountId || !apiToken) return c.json({ success: false, error: 'Cloudflare config missing' }, 500);
 
-  // 1. Cloudflare Images から削除
   try {
-    const response = await fetch(
-      `https://api.cloudflare.com/client/v4/accounts/${accountId}/images/v1/${imageId}`,
-      {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${apiToken}`,
-        },
-      }
-    );
-    const result: any = await response.json();
-    if (!result.success) {
-      console.error('Cloudflare image deletion failed:', result);
-      // 実体削除に失敗しても、DBから消したいケースがあるためログに留めるが、
-      // 認証エラーなどの致命的な場合は停止するようにしても良い
-    }
-  } catch (error) {
-    console.error('Cloudflare deletion error:', error);
-    return c.json({ success: false, error: 'Failed to communicate with Cloudflare' }, 500);
-  }
+    await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/images/v1/${imageId}`, {
+      method: 'DELETE', headers: { 'Authorization': `Bearer ${apiToken}` }
+    });
+  } catch (error) { console.error('CF deletion error:', error); }
 
-  // 2. D1 から削除
-  try {
-    await db.prepare('DELETE FROM images WHERE id = ?').bind(imageId).run();
-  } catch (error) {
-    console.error('D1 deletion error:', error);
-    return c.json({ success: false, error: 'Failed to delete from database' }, 500);
-  }
-
+  await db.prepare('DELETE FROM images WHERE id = ?').bind(imageId).run();
   return c.json({ success: true });
 });
 
 // 画像一括削除
 app.post('/api/images/bulk-delete', async (c) => {
-  const db = c.env.DB;
   const { ids } = await c.req.json();
   const accountId = c.env.CLOUDFLARE_ACCOUNT_ID;
   const apiToken = c.env.CLOUDFLARE_IMAGES_API_TOKEN;
 
-  if (!ids || !Array.isArray(ids)) {
-    return c.json({ success: false, error: 'Invalid IDs' }, 400);
-  }
+  if (!ids || !Array.isArray(ids)) return c.json({ success: false, error: 'Invalid IDs' }, 400);
 
-  if (!accountId || !apiToken) {
-    return c.json({ success: false, error: 'Cloudflare configuration is missing' }, 500);
-  }
-
-  const errors = [];
   for (const id of ids) {
     try {
-      // Cloudflare Images から削除
-      await fetch(
-        `https://api.cloudflare.com/client/v4/accounts/${accountId}/images/v1/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${apiToken}`,
-          },
-        }
-      );
-      // DB から削除
-      await db.prepare('DELETE FROM images WHERE id = ?').bind(id).run();
-    } catch (error) {
-      console.error(`Failed to delete image ${id}:`, error);
-      errors.push(id);
-    }
+      await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/images/v1/${id}`, {
+        method: 'DELETE', headers: { 'Authorization': `Bearer ${apiToken}` }
+      });
+      await c.env.DB.prepare('DELETE FROM images WHERE id = ?').bind(id).run();
+    } catch (e) { console.error(`Failed to delete ${id}`); }
   }
-
-  if (errors.length > 0) {
-    return c.json({ success: false, error: 'Some images failed to delete', failedIds: errors }, 500);
-  }
-
   return c.json({ success: true });
+});
+
+// --- Settings & Debug ---
+app.notFound((c) => {
+  return c.json({
+    success: false,
+    error: 'Route not found',
+    method: c.req.method,
+    path: c.req.path
+  }, 404);
+});
+
+app.onError((err, c) => {
+  console.error('Unhandled error:', err);
+  return c.json({
+    success: false,
+    error: 'Internal server error',
+    message: err.message
+  }, 500);
 });
 
 export default app;
