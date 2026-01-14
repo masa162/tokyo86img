@@ -45,7 +45,8 @@
     - [x] バッチ（箱）アップロード・管理機能
     - [x] Cloudflare Images と連動した完全削除機能（個別・一括）
 - [ ] **Phase 3: 公開用フロントエンドの完成 (IN PROGRESS)**
-    - [x] コミックビューアー (`unbelongcomic`) の基本実装と隙間レス表示
+    - [x] コミックビューアー (`unbelongcomic`) の基本実装と隙間レス表示 (DONE)
+    - [x] セントラル API への接続と ID/Slug による柔軟な配信 (DONE)
     - [ ] イラストギャラリー (`unbelongillust`) の微調整とOGP対応
 - [ ] **Phase 4: 運用最適化 (IN PROGRESS)**
     - [x] ログイン状態の永続化 (localStorage)

@@ -45,6 +45,18 @@ app.use('*', async (c, next) => {
 });
 
 // --- Works API ---
+const workSchema = z.object({
+  type: z.enum(['comic', 'illustration']),
+  title: z.string(),
+  slug: z.string(),
+  description: z.string().nullable().optional(),
+  author: z.string().optional(),
+  status: z.enum(['draft', 'published', 'archived']),
+  thumbnail_image_id: z.string().nullable().optional(),
+  og_image_id: z.string().nullable().optional(),
+  tags: z.array(z.string()).optional(),
+});
+
 app.get('/api/works', async (c) => {
   const type = c.req.query('type');
   let query = 'SELECT * FROM works';
@@ -59,9 +71,65 @@ app.get('/api/works', async (c) => {
 });
 
 app.get('/api/works/:id', async (c) => {
-  const id = c.req.param('id');
+  const idOrSlug = c.req.param('id');
+  let result = await c.env.DB.prepare('SELECT * FROM works WHERE id = ?').bind(idOrSlug).first();
+  if (!result) {
+    result = await c.env.DB.prepare('SELECT * FROM works WHERE slug = ?').bind(idOrSlug).first();
+  }
+  return c.json({ success: true, data: result });
+});
+
+app.post('/api/works', zValidator('json', workSchema), async (c) => {
+  const data = c.req.valid('json');
+  const id = crypto.randomUUID();
+  const now = getUnixTimestamp();
+  
+  await c.env.DB.prepare(
+    'INSERT INTO works (id, type, title, slug, description, author, status, thumbnail_image_id, og_image_id, tags, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  ).bind(
+    id,
+    data.type,
+    data.title,
+    data.slug,
+    data.description ?? null,
+    data.author ?? 'Admin',
+    data.status,
+    data.thumbnail_image_id ?? null,
+    data.og_image_id ?? null,
+    JSON.stringify(data.tags || []),
+    now,
+    now
+  ).run();
+  
   const result = await c.env.DB.prepare('SELECT * FROM works WHERE id = ?').bind(id).first();
   return c.json({ success: true, data: result });
+});
+
+app.put('/api/works/:id', zValidator('json', workSchema.partial()), async (c) => {
+  const id = c.req.param('id');
+  const data = c.req.valid('json');
+  const now = getUnixTimestamp();
+  
+  const fields = Object.keys(data);
+  if (fields.length === 0) return c.json({ success: true });
+  
+  const sets = fields.map(f => `${f} = ?`).join(', ') + ', updated_at = ?';
+  const values = fields.map(f => {
+    const val = (data as any)[f];
+    return Array.isArray(val) ? JSON.stringify(val) : val;
+  });
+  values.push(now, id);
+
+  await c.env.DB.prepare(`UPDATE works SET ${sets} WHERE id = ?`).bind(...values).run();
+  const result = await c.env.DB.prepare('SELECT * FROM works WHERE id = ?').bind(id).first();
+  return c.json({ success: true, data: result });
+});
+
+app.delete('/api/works/:id', async (c) => {
+  const id = c.req.param('id');
+  // エピソードも削除するかは要件次第だが、一旦作品のみ
+  await c.env.DB.prepare('DELETE FROM works WHERE id = ?').bind(id).run();
+  return c.json({ success: true });
 });
 
 // --- Illustrations API ---
@@ -182,8 +250,11 @@ app.get('/api/episodes', async (c) => {
 });
 
 app.get('/api/episodes/:id', async (c) => {
-  const id = c.req.param('id');
-  const result = await c.env.DB.prepare('SELECT * FROM episodes WHERE id = ?').bind(id).first();
+  const idOrSlug = c.req.param('id');
+  let result = await c.env.DB.prepare('SELECT * FROM episodes WHERE id = ?').bind(idOrSlug).first();
+  if (!result) {
+    result = await c.env.DB.prepare('SELECT * FROM episodes WHERE slug = ?').bind(idOrSlug).first();
+  }
   return c.json({ success: true, data: result });
 });
 

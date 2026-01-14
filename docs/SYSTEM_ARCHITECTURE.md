@@ -10,9 +10,9 @@
 - **役割**: 全ての動的データの提供。
 - **データストア**: Cloudflare D1 (Database名: `unbelong-db`)
 - **主なエンドポイント**:
-  - `/api/illustrations`: イラスト一覧・個別取得・作成・更新
-  - `/api/works`: 作品（マンガ・イラスト集）の管理
-  - `/api/episodes`: コミックエピソード管理
+  - `/api/illustrations`: イラスト一覧・個別取得 (ID or Slug)・作成・更新
+  - `/api/works`: 作品（マンガ・イラスト集）の一覧・個別取得 (ID or Slug)・作成・更新・削除
+  - `/api/episodes`: コミックエピソード管理の一覧・個別取得 (ID or Slug)・作成・更新・削除
   - `/api/upload`: Cloudflare Images への直接アップロード
   - `/api/batches`: 画像バッチ（箱）の一覧・作成・詳細・削除・Markdown生成
   - `/api/images`: 最近のアップロード一覧・個別/一括削除（CF Images連動）

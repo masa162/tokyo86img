@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ApiResponse, Work, Episode, Illustration, IllustrationInput, EpisodeInput } from '@unbelong/shared';
+import type { ApiResponse, Work, WorkInput, Episode, Illustration, IllustrationInput, EpisodeInput } from '@unbelong/shared';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://unbelong-api.belong2jazz.workers.dev';
 
@@ -16,6 +16,12 @@ export const worksApi = {
     client.get<ApiResponse<Work[]>>('/api/works', { params: { type } }),
   get: (id: string) => 
     client.get<ApiResponse<Work>>(`/api/works/${id}`),
+  create: (data: WorkInput) => 
+    client.post<ApiResponse<Work>>('/api/works', data),
+  update: (id: string, data: Partial<WorkInput>) => 
+    client.put<ApiResponse<Work>>(`/api/works/${id}`, data),
+  delete: (id: string) => 
+    client.delete<ApiResponse<void>>(`/api/works/${id}`),
 };
 
 export const illustrationsApi = {

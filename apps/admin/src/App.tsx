@@ -12,6 +12,8 @@ import EpisodeNewPage from './pages/EpisodeNew';
 import EpisodeEditPage from './pages/EpisodeEdit';
 import BatchUpload from './pages/BatchUpload';
 import BatchesPage from './pages/Batches';
+import WorkNewPage from './pages/WorkNew';
+import WorkEditPage from './pages/WorkEdit';
 
 // ダッシュボードページ
 const Dashboard = () => {
@@ -509,6 +511,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/works" element={<WorksPage />} />
+          <Route path="/works/new" element={<WorkNewPage />} />
+          <Route path="/works/:id/edit" element={<WorkEditPage />} />
           <Route path="/works/:workId/episodes" element={<EpisodesPage />} />
           <Route path="/illustrations" element={<IllustrationsPage />} />
           <Route path="/illustrations/new" element={<IllustrationNewPage />} />
