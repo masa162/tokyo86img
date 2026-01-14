@@ -226,13 +226,29 @@ const Dashboard = () => {
                   alt={img.filename}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-x-0 bottom-0 p-2 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 gap-2">
                   <button
                     onClick={() => copyToClipboard(img.id)}
-                    className="w-full py-1 text-[10px] bg-white/20 hover:bg-white/40 text-white rounded backdrop-blur-md transition-colors"
+                    className="w-full py-1.5 text-[10px] bg-white/20 hover:bg-white/40 text-white rounded backdrop-blur-md transition-colors font-bold"
                   >
                     IDをコピー
                   </button>
+                  <button
+                    onClick={() => {
+                      const url = img.batch_id 
+                        ? `https://img.unbelong.xyz/${img.batch_id}/${String(img.sequence_number).padStart(3, '0')}.webp`
+                        : `https://img.unbelong.xyz/${img.id.substring(0, 6)}.webp`;
+                      navigator.clipboard.writeText(url);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="w-full py-1.5 text-[10px] bg-primary-500/80 hover:bg-primary-500 text-white rounded backdrop-blur-md transition-colors font-bold"
+                  >
+                    URLをコピー
+                  </button>
+                  <div className="text-[8px] text-white/60 truncate w-full text-center">
+                    {img.batch_id ? `${img.batch_id}/${img.sequence_number}` : img.id.substring(0, 6)}
+                  </div>
                 </div>
               </div>
             ))}
