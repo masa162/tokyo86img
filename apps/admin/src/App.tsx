@@ -148,10 +148,32 @@ const Dashboard = () => {
                   />
                 </div>
                 <div className="flex items-center gap-2 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
-                  <code className="flex-1 text-xs font-mono text-gray-600 truncate">{lastImageId}</code>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Raw Image ID</p>
+                    <code className="text-xs font-mono text-gray-600 truncate block">{lastImageId}</code>
+                  </div>
                   <button
                     onClick={() => copyToClipboard(lastImageId)}
                     className={`p-2 rounded-lg transition-all ${copied ? 'bg-green-500 text-white' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}
+                  >
+                    {copied ? <Check size={16} /> : <Copy size={16} />}
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2 bg-primary-50 p-3 rounded-xl border border-primary-100 shadow-sm">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-primary-400 uppercase font-bold mb-1">Short CDN URL</p>
+                    <code className="text-xs font-mono text-primary-700 truncate block">
+                      https://img.unbelong.xyz/{lastImageId.substring(0, 6)}.webp
+                    </code>
+                  </div>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`https://img.unbelong.xyz/${lastImageId.substring(0, 6)}.webp`);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className={`p-2 rounded-lg transition-all ${copied ? 'bg-green-500 text-white' : 'bg-primary-100 text-primary-500 hover:bg-primary-200'}`}
                   >
                     {copied ? <Check size={16} /> : <Copy size={16} />}
                   </button>

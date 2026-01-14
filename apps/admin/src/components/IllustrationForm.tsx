@@ -25,7 +25,7 @@ export default function IllustrationForm({
   const [formData, setFormData] = useState({
     work_id: illustration?.work_id || '',
     title: illustration?.title || '',
-    slug: illustration?.slug || (isEdit ? '' : generateRandomSlug()),
+    slug: illustration?.slug || (isEdit ? '' : generateRandomSlug(6)),
     description: illustration?.description || '',
     image_id: illustration?.image_id || '',
     og_image_id: illustration?.og_image_id || '',
