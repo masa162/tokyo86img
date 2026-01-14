@@ -27,7 +27,7 @@ export default function EpisodeForm({
     slug: episode?.slug || (isEdit ? '' : generateRandomSlug()),
     description: episode?.description || '',
     content: episode?.content || '',
-    status: episode?.status || 'draft',
+    status: episode?.status || 'published',
     thumbnail_image_id: episode?.thumbnail_image_id || '',
     og_image_id: episode?.og_image_id || '',
   });
@@ -204,6 +204,20 @@ export default function EpisodeForm({
               />
             </div>
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">ステータス <span className="text-red-500">*</span></label>
+          <select
+            name="status"
+            value={formData.status}
+            onChange={handleChange}
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 transition-all outline-none bg-white"
+          >
+            <option value="published">公開 (Published)</option>
+            <option value="draft">下書き (Draft)</option>
+            <option value="archived">アーカイブ (Archived)</option>
+          </select>
         </div>
 
         {isEdit && (
