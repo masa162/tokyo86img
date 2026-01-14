@@ -137,15 +137,18 @@ const Dashboard = () => {
             </button>
           </div>
 
-          <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-3xl p-6 min-h-[200px] bg-gray-50/50">
+          <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-3xl p-6 min-h-[300px] bg-gray-50/50">
             {lastImageId ? (
               <div className="w-full space-y-4 animate-in zoom-in-95 duration-300">
-                <div className="relative group aspect-video rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm">
+                <div className="relative group max-h-[400px] rounded-xl overflow-y-auto bg-white border border-gray-100 shadow-sm scrollbar-thin scrollbar-thumb-gray-200">
                   <img
-                    src={getImageUrl(lastImageId, { width: 400 })}
+                    src={getImageUrl(lastImageId, { width: 800 })}
                     alt="Uploaded preview"
-                    className="w-full h-full object-contain"
+                    className="w-full h-auto block"
                   />
+                  <div className="absolute top-2 right-2 bg-black/50 text-white text-[10px] px-2 py-1 rounded backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity">
+                    Preview (Scrollable)
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
                   <div className="flex-1 min-w-0">
