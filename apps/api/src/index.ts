@@ -485,4 +485,76 @@ app.delete('/api/batches/:batchId', async (c) => {
   return c.json({ success: true, data: null });
 });
 
+// 画像一覧取得
+app.get('/api/images', async (c) => {
+  const db = c.env.DB;
+  const { results } = await db.prepare('SELECT * FROM images ORDER BY created_at DESC LIMIT 100').all();
+  return c.json({ success: true, data: results });
+});
+
+// 個別画像削除（D1レコード + Cloudflare Images実体 を完全に削除）
+app.delete('/api/images/:id', async (c) => {
+  const db = c.env.DB;
+  const imageId = c.req.param('id');
+  const accountId = c.env.CLOUDFLARE_ACCOUNT_ID;
+  const apiToken = c.env.CLOUDFLARE_IMAGES_API_TOKEN;
+
+  // 1. Cloudflare Images から削除
+  try {
+    const response = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${accountId}/images/v1/${imageId}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${apiToken}`,
+        },
+      }
+    );
+    const result: any = await response.json();
+    if (!result.success) {
+      console.error('Cloudflare image deletion failed:', result);
+    }
+  } catch (error) {
+    console.error('Cloudflare deletion error:', error);
+  }
+
+  // 2. D1 から削除
+  await db.prepare('DELETE FROM images WHERE id = ?').bind(imageId).run();
+
+  return c.json({ success: true });
+});
+
+// 画像一括削除
+app.post('/api/images/bulk-delete', async (c) => {
+  const db = c.env.DB;
+  const { ids } = await c.req.json();
+  const accountId = c.env.CLOUDFLARE_ACCOUNT_ID;
+  const apiToken = c.env.CLOUDFLARE_IMAGES_API_TOKEN;
+
+  if (!ids || !Array.isArray(ids)) {
+    return c.json({ success: false, error: 'Invalid IDs' }, 400);
+  }
+
+  for (const id of ids) {
+    try {
+      // Cloudflare Images から削除
+      await fetch(
+        `https://api.cloudflare.com/client/v4/accounts/${accountId}/images/v1/${id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${apiToken}`,
+          },
+        }
+      );
+      // DB から削除
+      await db.prepare('DELETE FROM images WHERE id = ?').bind(id).run();
+    } catch (error) {
+      console.error(`Failed to delete image ${id}:`, error);
+    }
+  }
+
+  return c.json({ success: true });
+});
+
 export default app;

@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Image as ImageIcon, BookOpen, Settings, LogOut, Menu, Upload, Loader2, Copy, Check } from 'lucide-react';
+import { LayoutDashboard, Image as ImageIcon, BookOpen, Settings, LogOut, Menu, Upload, Loader2, Copy, Check, Trash2, Square, CheckSquare } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { imageApi, worksApi, episodesApi, illustrationsApi } from './lib/api';
 import { getImageUrl } from '@unbelong/shared';
@@ -22,6 +22,8 @@ const Dashboard = () => {
   const [loadingStats, setLoadingStats] = useState(true);
   const [images, setImages] = useState<any[]>([]);
   const [loadingImages, setLoadingImages] = useState(true);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isDeleting, setIsDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -44,22 +46,70 @@ const Dashboard = () => {
       }
     };
 
-    const fetchImages = async () => {
-      try {
-        const response = await imageApi.list();
-        if (response.data.success) {
-          setImages(response.data.data || []);
-        }
-      } catch (error) {
-        console.error('Failed to fetch images:', error);
-      } finally {
-        setLoadingImages(false);
-      }
-    };
-
     fetchStats();
     fetchImages();
   }, []);
+
+  const fetchImages = async () => {
+    try {
+      setLoadingImages(true);
+      const response = await imageApi.list();
+      if (response.data.success) {
+        setImages(response.data.data || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch images:', error);
+    } finally {
+      setLoadingImages(false);
+    }
+  };
+
+  const handleToggleSelect = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleDeleteImage = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm('この画像を完全に削除してもよろしいですか？（Cloudflare Imagesからも消去されます）')) return;
+
+    try {
+      setIsDeleting(true);
+      const res = await imageApi.delete(id);
+      if (res.data.success) {
+        setImages(prev => prev.filter(img => img.id !== id));
+        setSelectedIds(prev => prev.filter(i => i !== id));
+        if (lastImageId === id) setLastImageId(null);
+      }
+    } catch (error) {
+      console.error('Failed to delete image:', error);
+      alert('削除に失敗しました');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!window.confirm(`${selectedIds.length}枚の画像を完全に削除してもよろしいですか？`)) return;
+
+    try {
+      setIsDeleting(true);
+      const res = await imageApi.bulkDelete(selectedIds);
+      if (res.data.success) {
+        setImages(prev => prev.filter(img => !selectedIds.includes(img.id)));
+        if (lastImageId && selectedIds.includes(lastImageId)) setLastImageId(null);
+        setSelectedIds([]);
+      }
+    } catch (error) {
+      console.error('Failed to bulk delete images:', error);
+      alert('一括削除に失敗しました');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -210,10 +260,22 @@ const Dashboard = () => {
 
       {/* 画像ギャラリーセクション */}
       <div className="space-y-4">
-        <h2 className="text-lg font-bold flex items-center">
-          <ImageIcon className="mr-2 text-primary-500" size={20} />
-          最近のアップロード（ギャラリー）
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold flex items-center">
+            <ImageIcon className="mr-2 text-primary-500" size={20} />
+            最近のアップロード（ギャラリー）
+          </h2>
+          {selectedIds.length > 0 && (
+            <button
+              onClick={handleBulkDelete}
+              disabled={isDeleting}
+              className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all font-bold text-sm border border-red-100"
+            >
+              {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+              選択した {selectedIds.length} 件を削除
+            </button>
+          )}
+        </div>
         
         {loadingImages ? (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -224,21 +286,32 @@ const Dashboard = () => {
         ) : images.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {images.map((img) => (
-              <div key={img.id} className="group relative aspect-square bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all">
+              <div 
+                key={img.id} 
+                className={`group relative aspect-square bg-white rounded-xl border overflow-hidden shadow-sm hover:shadow-md transition-all ${selectedIds.includes(img.id) ? 'ring-2 ring-primary-500 border-primary-500' : 'border-gray-100'}`}
+                onClick={(e) => handleToggleSelect(img.id, e)}
+              >
                 <img
                   src={getImageUrl(img.id, { width: 200, height: 200, fit: 'cover' })}
                   alt={img.filename}
                   className="w-full h-full object-cover"
                 />
+                
+                {/* 選択チェックボックス */}
+                <div className={`absolute top-2 left-2 z-10 p-1 rounded-lg backdrop-blur-md transition-all ${selectedIds.includes(img.id) ? 'bg-primary-500 text-white' : 'bg-black/20 text-white opacity-0 group-hover:opacity-100'}`}>
+                  {selectedIds.includes(img.id) ? <CheckSquare size={16} /> : <Square size={16} />}
+                </div>
+
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 gap-2">
                   <button
-                    onClick={() => copyToClipboard(img.id)}
+                    onClick={(e) => { e.stopPropagation(); copyToClipboard(img.id); }}
                     className="w-full py-1.5 text-[10px] bg-white/20 hover:bg-white/40 text-white rounded backdrop-blur-md transition-colors font-bold"
                   >
                     IDをコピー
                   </button>
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       const url = img.batch_id 
                         ? `https://img.unbelong.xyz/${img.batch_id}/${String(img.sequence_number).padStart(3, '0')}.webp`
                         : `https://img.unbelong.xyz/${img.id.substring(0, 6)}.webp`;
@@ -250,9 +323,13 @@ const Dashboard = () => {
                   >
                     URLをコピー
                   </button>
-                  <div className="text-[8px] text-white/60 truncate w-full text-center">
-                    {img.batch_id ? `${img.batch_id}/${img.sequence_number}` : img.id.substring(0, 6)}
-                  </div>
+                  <button
+                    onClick={(e) => handleDeleteImage(img.id, e)}
+                    className="w-full py-1.5 text-[10px] bg-red-500/80 hover:bg-red-500 text-white rounded backdrop-blur-md transition-colors font-bold flex items-center justify-center gap-1"
+                  >
+                    <Trash2 size={12} />
+                    削除
+                  </button>
                 </div>
               </div>
             ))}

@@ -56,6 +56,10 @@ export const imageApi = {
   },
   list: () => 
     client.get<ApiResponse<any[]>>('/api/images'),
+  delete: (id: string) => 
+    client.delete<ApiResponse<void>>(`/api/images/${id}`),
+  bulkDelete: (ids: string[]) => 
+    client.post<ApiResponse<void>>('/api/images/bulk-delete', { ids }),
 };
 
 export const batchesApi = {
