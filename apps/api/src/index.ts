@@ -523,6 +523,10 @@ app.delete('/api/images/:id', async (c) => {
   const accountId = c.env.CLOUDFLARE_ACCOUNT_ID;
   const apiToken = c.env.CLOUDFLARE_IMAGES_API_TOKEN;
 
+  if (!accountId || !apiToken) {
+    return c.json({ success: false, error: 'Cloudflare configuration (ID or Token) is missing' }, 500);
+  }
+
   // 1. Cloudflare Images から削除
   try {
     const response = await fetch(
@@ -537,13 +541,21 @@ app.delete('/api/images/:id', async (c) => {
     const result: any = await response.json();
     if (!result.success) {
       console.error('Cloudflare image deletion failed:', result);
+      // 実体削除に失敗しても、DBから消したいケースがあるためログに留めるが、
+      // 認証エラーなどの致命的な場合は停止するようにしても良い
     }
   } catch (error) {
     console.error('Cloudflare deletion error:', error);
+    return c.json({ success: false, error: 'Failed to communicate with Cloudflare' }, 500);
   }
 
   // 2. D1 から削除
-  await db.prepare('DELETE FROM images WHERE id = ?').bind(imageId).run();
+  try {
+    await db.prepare('DELETE FROM images WHERE id = ?').bind(imageId).run();
+  } catch (error) {
+    console.error('D1 deletion error:', error);
+    return c.json({ success: false, error: 'Failed to delete from database' }, 500);
+  }
 
   return c.json({ success: true });
 });
@@ -559,6 +571,11 @@ app.post('/api/images/bulk-delete', async (c) => {
     return c.json({ success: false, error: 'Invalid IDs' }, 400);
   }
 
+  if (!accountId || !apiToken) {
+    return c.json({ success: false, error: 'Cloudflare configuration is missing' }, 500);
+  }
+
+  const errors = [];
   for (const id of ids) {
     try {
       // Cloudflare Images から削除
@@ -575,7 +592,12 @@ app.post('/api/images/bulk-delete', async (c) => {
       await db.prepare('DELETE FROM images WHERE id = ?').bind(id).run();
     } catch (error) {
       console.error(`Failed to delete image ${id}:`, error);
+      errors.push(id);
     }
+  }
+
+  if (errors.length > 0) {
+    return c.json({ success: false, error: 'Some images failed to delete', failedIds: errors }, 500);
   }
 
   return c.json({ success: true });
