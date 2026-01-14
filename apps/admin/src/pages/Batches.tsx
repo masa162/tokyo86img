@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { batchesApi } from '../lib/api';
-import { Package, Trash2, Copy, Check, ExternalLink, Loader2, Plus, ChevronRight } from 'lucide-react';
+import { Package, Trash2, Copy, Check, Loader2, Plus } from 'lucide-react';
 import { formatDate } from '@unbelong/shared';
 
 export default function Batches() {
@@ -27,7 +27,7 @@ export default function Batches() {
   };
 
   const handleDelete = async (batchId: string) => {
-    if (!window.confirm('このバッチを削除してもよろしいですか？（D1のレコードのみ削除され、Cloudflare Imagesの実体は残ります）')) return;
+    if (!window.confirm('このバッチを完全に削除してもよろしいですか？（バッチ内の全ての画像が Cloudflare Images からも消去されます）')) return;
 
     try {
       await batchesApi.delete(batchId);

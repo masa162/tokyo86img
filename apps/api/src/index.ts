@@ -469,6 +469,8 @@ app.get('/api/batches/:batchId/markdown', async (c) => {
 app.delete('/api/batches/:batchId', async (c) => {
   const db = c.env.DB;
   const batchId = c.req.param('batchId');
+  const accountId = c.env.CLOUDFLARE_ACCOUNT_ID;
+  const apiToken = c.env.CLOUDFLARE_IMAGES_API_TOKEN;
   
   // バッチの存在確認
   const batch = await db.prepare('SELECT * FROM image_batches WHERE batch_id = ?').bind(batchId).first();
@@ -476,7 +478,29 @@ app.delete('/api/batches/:batchId', async (c) => {
     return c.json({ success: false, error: 'Batch not found' }, 404);
   }
   
-  // 画像レコードを削除（Cloudflare Imagesの実体は残すが、DB上のバッチとの紐付けを消す）
+  // バッチに紐づく全ての画像IDを取得
+  const { results: images } = await db.prepare('SELECT id FROM images WHERE batch_id = ?').bind(batchId).all<{ id: string }>();
+
+  // Cloudflare Images から各画像を削除
+  if (images && images.length > 0) {
+    for (const img of images) {
+      try {
+        await fetch(
+          `https://api.cloudflare.com/client/v4/accounts/${accountId}/images/v1/${img.id}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${apiToken}`,
+            },
+          }
+        );
+      } catch (error) {
+        console.error(`Failed to delete image ${img.id} during batch deletion:`, error);
+      }
+    }
+  }
+  
+  // 画像レコードを削除
   await db.prepare('DELETE FROM images WHERE batch_id = ?').bind(batchId).run();
   
   // バッチレコードを削除
