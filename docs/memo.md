@@ -218,7 +218,21 @@ https://unbelong-hono-admin.pages.dev/episodes/c07aaec5-ab53-4ff6-a703-669d5ec03
 
 https://comic.unbelong.xyz/viewer/z9qj
 
-![](https://img.unbelong.xyz/5szfba/001.webp)
-![](https://img.unbelong.xyz/5szfba/002.webp)
-![](https://img.unbelong.xyz/5szfba/003.webp)
+![](https://img.unbelong.xyz/bpmsma/001.webp)
+![](https://img.unbelong.xyz/bpmsma/002.webp)
+![](https://img.unbelong.xyz/bpmsma/003.webp)
 
+
+
+
+https://unbelong-hono-admin.pages.dev/works/a7e06c4c-edda-4dc7-9589-7813d5db5eaa/edit
+
+サムネイル画像ID
+6f1e1fb6-9107-4066-2c0c-e1a60a683400
+を登録したんだが、
+
+
+コミックのフロント
+https://comic.unbelong.xyz/
+
+表示されていない
