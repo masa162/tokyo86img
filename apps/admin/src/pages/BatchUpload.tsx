@@ -209,7 +209,7 @@ export default function BatchUpload() {
           💡 ヒント
         </h3>
         <ul className="text-sm text-amber-700 space-y-1 list-disc list-inside">
-          <li>アップロードされた画像は <code>img.unbelong.xyz/ID/001.webp</code> のような形式で配信されます。</li>
+          <li>アップロードされた画像は <code>img.tokyo86.com/ID/001.webp</code> のような形式で配信されます。</li>
           <li>IDはランダムに生成されるため、URLから前後の作品を推測される心配がありません。</li>
           <li>完了画面でコピーした Markdown をエピソード本文に貼るだけで公開できます。</li>
         </ul>

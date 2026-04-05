@@ -220,12 +220,12 @@ const Dashboard = () => {
                   <div className="flex-1 min-w-0">
                     <p className="text-[10px] text-primary-400 uppercase font-bold mb-1">Short CDN URL</p>
                     <code className="text-xs font-mono text-primary-700 truncate block">
-                      https://img.unbelong.xyz/{lastImageId.substring(0, 6)}.webp
+                      https://img.tokyo86.com/{lastImageId.substring(0, 6)}.webp
                     </code>
                   </div>
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(`https://img.unbelong.xyz/${lastImageId.substring(0, 6)}.webp`);
+                      navigator.clipboard.writeText(`https://img.tokyo86.com/${lastImageId.substring(0, 6)}.webp`);
                       setCopied(true);
                       setTimeout(() => setCopied(false), 2000);
                     }}
@@ -315,8 +315,8 @@ const Dashboard = () => {
                     onClick={(e) => {
                       e.stopPropagation();
                       const url = img.batch_id 
-                        ? `https://img.unbelong.xyz/${img.batch_id}/${String(img.sequence_number).padStart(3, '0')}.webp`
-                        : `https://img.unbelong.xyz/${img.id.substring(0, 6)}.webp`;
+                        ? `https://img.tokyo86.com/${img.batch_id}/${String(img.sequence_number).padStart(3, '0')}.webp`
+                        : `https://img.tokyo86.com/${img.id.substring(0, 6)}.webp`;
                       navigator.clipboard.writeText(url);
                       setCopied(true);
                       setTimeout(() => setCopied(false), 2000);
