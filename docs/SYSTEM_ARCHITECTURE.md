@@ -35,8 +35,10 @@
   - コミック: `img.unbelong.xyz/{batch_id}/{seq-3-digit}.webp` (バッチIDと連番で引き当て)
 
 ### D. 各フロントエンド (Pages)
-- **unbelongillust**: イラスト閲覧用。 APIからデータを取得してレスポンシブに表示。
+- **unbelongillust**: イラスト閲覧用。APIからデータを取得してレスポンシブに表示。
+  - 本番URL: `illust.unbelong.xyz` / `illust.tokyo86.com`（2026-04-05追加）
 - **unbelongcomic**: コミックビューアー。Markdown形式の画像URLをパースし、隙間なく連続表示するビューアーを実装。
+  - 本番URL: `comic.unbelong.xyz` / `tokyo86.com`（2026-04-05追加、メインドメイン）
 
 ## 3. 画像配信・削除の仕組み
 1. `unbelong-hono-admin` で画像をアップロード
