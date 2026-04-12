@@ -1,0 +1,5 @@
+name = "tokyo86-admin"
+compatibility_date = "2026-04-12"
+
+[assets]
+directory = "./dist"
