@@ -14,7 +14,7 @@ ALLOWED_ORIGINS = "*"
 CLOUDFLARE_ACCOUNT_ID = "c677241d7d66ff80103bab9f142128ab"
 
 [env.production.vars]
-ALLOWED_ORIGINS = "https://tokyo86-admin.pages.dev,https://unbelong-hono-admin.pages.dev,https://admin.unbelong.xyz,https://comic.unbelong.xyz,https://illust.unbelong.xyz,https://tokyo86.com,https://www.tokyo86.com,https://illust.tokyo86.com"
+ALLOWED_ORIGINS = "https://tokyo86-admin.belong2jazz.workers.dev,https://tokyo86-admin.pages.dev,https://unbelong-hono-admin.pages.dev,https://admin.unbelong.xyz,https://comic.unbelong.xyz,https://illust.unbelong.xyz,https://tokyo86.com,https://www.tokyo86.com,https://illust.tokyo86.com"
 CLOUDFLARE_ACCOUNT_ID = "c677241d7d66ff80103bab9f142128ab"
 
 [[env.production.d1_databases]]
