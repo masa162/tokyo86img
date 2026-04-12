@@ -10,83 +10,70 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // パターン1: 単品の Cloudflare Image ID (UUID等) または ショートID
-    // 形式: /<id>(.<ext>)
-    const idMatch = path.match(/^\/([a-z0-9-]{4,64})(\.(webp|jpg|jpeg|png|gif))?$/i);
-    
-    // パターン2: バッチ画像 /{batch_id}/{sequence}.webp
+    // Pattern 1: Batch image /{batchId}/{seq}(.ext)  — check before single ID
     const batchMatch = path.match(/^\/([a-z0-9]{6})\/(\d{3})(\.(webp|jpg|jpeg|png|gif))?$/i);
-
     if (batchMatch) {
       const [, batchId, sequenceStr] = batchMatch;
       const sequence = parseInt(sequenceStr, 10);
-
       try {
-        const result = await env.DB.prepare(
+        const row = await env.DB.prepare(
           'SELECT id FROM images WHERE batch_id = ? AND sequence_number = ?'
         ).bind(batchId, sequence).first<{ id: string }>();
-
-        if (result) {
-          return redirectWithVariants(result.id, url.searchParams, env);
-        }
-      } catch (error) {
-        console.error('Error fetching batch image:', error);
+        if (row) return buildRedirect(row.id, url.searchParams, env.CLOUDFLARE_ACCOUNT_HASH);
+      } catch (e) {
+        console.error('Batch lookup error:', e);
+        return new Response('Internal Server Error', { status: 500 });
       }
+      return new Response('Image not found', { status: 404 });
     }
 
+    // Pattern 2: Single image /{id}(.ext)
+    const idMatch = path.match(/^\/([a-z0-9-]{4,64})(\.(webp|jpg|jpeg|png|gif))?$/i);
     if (idMatch) {
       const [, idOrShortId] = idMatch;
-      
       try {
-        // 1. まず完全一致（UUID）でチェック
-        let imageId = idOrShortId;
-        const exists = await env.DB.prepare(
+        // Exact UUID match first
+        let row = await env.DB.prepare(
           'SELECT id FROM images WHERE id = ? LIMIT 1'
         ).bind(idOrShortId).first<{ id: string }>();
 
-        // 2. 一致しない場合はショートIDとして検索
-        if (!exists && idOrShortId.length <= 8) {
-          const shortResult = await env.DB.prepare(
+        // Short ID prefix search (≤8 chars)
+        if (!row && idOrShortId.length <= 8) {
+          row = await env.DB.prepare(
             'SELECT id FROM images WHERE id LIKE ? AND batch_id IS NULL LIMIT 1'
           ).bind(`${idOrShortId}%`).first<{ id: string }>();
-          if (shortResult) {
-            imageId = shortResult.id;
-          } else {
-            return new Response('Image not found', { status: 404 });
-          }
-        } else if (!exists) {
-          // UUIDっぽいがDBにない場合。暫定的にそのまま通すか、404にするか。
-          // セキュリティ考慮しDBにあるもののみ許可
-          return new Response('Image not found', { status: 404 });
         }
 
-        return redirectWithVariants(imageId, url.searchParams, env);
-      } catch (error) {
-        console.error('Error fetching image:', error);
+        if (row) return buildRedirect(row.id, url.searchParams, env.CLOUDFLARE_ACCOUNT_HASH);
+        return new Response('Image not found', { status: 404 });
+      } catch (e) {
+        console.error('ID lookup error:', e);
         return new Response('Internal Server Error', { status: 500 });
       }
     }
 
-    return new Response('Invalid URL format', { status: 400 });
+    return new Response('Not found', { status: 404 });
   },
 };
 
-/**
- * Cloudflare Images の URL へリダイレクト（バリアント対応）
- */
-function redirectWithVariants(imageId: string, searchParams: URLSearchParams, env: Env): Response {
-  const accountHash = env.CLOUDFLARE_ACCOUNT_HASH;
-  
-  // クエリパラメータ w, h, fit がある場合はカスタムバリアント構成
-  // 今回は一旦 imagedelivery.net の URL へのリダイレクトに留める。
-  
-  const width = searchParams.get('w') || searchParams.get('width');
-  const height = searchParams.get('h') || searchParams.get('height');
-  const fit = searchParams.get('fit');
+function buildRedirect(imageId: string, params: URLSearchParams, accountHash: string): Response {
+  const w = params.get('w') || params.get('width');
+  const h = params.get('h') || params.get('height');
+  const fit = params.get('fit');
+  const q = params.get('q') || params.get('quality');
 
-  // 本来は Cloudflare Images の変形パラメータを URL に含めることができる
-  // ここでは標準の /public バリアントを返す。
-  const imageUrl = `https://imagedelivery.net/${accountHash}/${imageId}/public`;
-  
-  return Response.redirect(imageUrl, 302);
+  const parts: string[] = [];
+  if (w) parts.push(`w=${w}`);
+  if (h) parts.push(`h=${h}`);
+  if (fit) parts.push(`fit=${fit}`);
+  if (q) parts.push(`q=${q}`);
+
+  const variant = parts.length > 0 ? parts.join(',') : 'public';
+  const imageUrl = `https://imagedelivery.net/${accountHash}/${imageId}/${variant}`;
+
+  const res = Response.redirect(imageUrl, 302);
+  // Redirect itself is cacheable
+  const headers = new Headers(res.headers);
+  headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+  return new Response(null, { status: 302, headers });
 }

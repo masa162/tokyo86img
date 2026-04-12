@@ -9,7 +9,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./apps/admin/src/*"],
-      "@unbelong/shared": ["./packages/shared/src/index.ts"]
+      "@tokyo86/shared": ["./packages/shared/src/index.ts"]
     }
   }
 }

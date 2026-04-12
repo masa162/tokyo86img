@@ -1,21 +1,21 @@
 {
-  "name": "unbelong",
+  "name": "tokyo86",
   "version": "1.0.0",
-  "description": "unbelong - Hono based Comic & Illustration Platform",
+  "description": "tokyo86 - Hono based Comic & Illustration Platform",
   "private": true,
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "dev:api": "npm run dev --workspace=@unbelong/api",
-    "dev:admin": "npm run dev --workspace=@unbelong/admin",
-    "dev:public": "npm run dev --workspace=@unbelong/public",
-    "dev:cdn": "npm run dev --workspace=@unbelong/cdn",
-    "deploy:api": "npm run deploy --workspace=@unbelong/api",
-    "deploy:admin": "npm run deploy --workspace=@unbelong/admin",
-    "deploy:public": "npm run deploy --workspace=@unbelong/public",
-    "deploy:cdn": "npm run deploy --workspace=@unbelong/cdn",
+    "dev:api": "npm run dev --workspace=@tokyo86/api",
+    "dev:admin": "npm run dev --workspace=@tokyo86/admin",
+    "dev:public": "npm run dev --workspace=@tokyo86/public",
+    "dev:img-cdn": "npm run dev --workspace=@tokyo86/img-cdn",
+    "deploy:api": "npm run deploy --workspace=@tokyo86/api",
+    "deploy:admin": "npm run deploy --workspace=@tokyo86/admin",
+    "deploy:public": "npm run deploy --workspace=@tokyo86/public",
+    "deploy:img-cdn": "npm run deploy --workspace=@tokyo86/img-cdn",
     "build": "npm run build --workspaces"
   },
   "devDependencies": {

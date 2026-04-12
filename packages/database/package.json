@@ -1,5 +1,5 @@
 {
-  "name": "@unbelong/database",
+  "name": "@tokyo86/database",
   "version": "1.0.0",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

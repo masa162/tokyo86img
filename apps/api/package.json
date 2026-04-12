@@ -1,5 +1,5 @@
 {
-  "name": "@unbelong/api",
+  "name": "@tokyo86/api",
   "version": "1.0.0",
   "type": "module",
   "private": true,
@@ -10,7 +10,7 @@
     "build": "echo 'no build step needed for api worker'"
   },
   "dependencies": {
-    "@unbelong/shared": "*",
+    "@tokyo86/shared": "*",
     "hono": "^4.0.0",
     "@hono/zod-validator": "^0.1.11",
     "zod": "^3.22.4"

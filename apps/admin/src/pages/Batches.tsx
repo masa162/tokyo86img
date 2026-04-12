@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { batchesApi } from '../lib/api';
 import { Package, Trash2, Copy, Check, Loader2, Plus } from 'lucide-react';
-import { formatDate } from '@unbelong/shared';
+import { formatDate } from '@tokyo86/shared';
 
 export default function Batches() {
   const [batches, setBatches] = useState<any[]>([]);

@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { worksApi, imageApi } from '@/lib/api';
-import type { Work } from '@unbelong/shared';
-import { generateRandomSlug, generateSlug } from '@unbelong/shared';
+import type { Work } from '@tokyo86/shared';
+import { generateRandomSlug, generateSlug } from '@tokyo86/shared';
 import { Save, ArrowLeft, Image as ImageIcon, Upload, Loader2, Tag } from 'lucide-react';
 
 interface WorkFormProps {

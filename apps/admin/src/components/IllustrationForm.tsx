@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { illustrationsApi, worksApi, imageApi } from '@/lib/api';
-import type { Illustration, Work } from '@unbelong/shared';
-import { generateRandomSlug, generateSlug } from '@unbelong/shared';
+import type { Illustration, Work } from '@tokyo86/shared';
+import { generateRandomSlug, generateSlug } from '@tokyo86/shared';
 import { Save, ArrowLeft, Image as ImageIcon, Upload, Loader2, Grid } from 'lucide-react';
 import ImagePickerModal from './ImagePickerModal';
 

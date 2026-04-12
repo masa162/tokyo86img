@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { illustrationsApi } from '@/lib/api';
-import type { Illustration } from '@unbelong/shared';
+import type { Illustration } from '@tokyo86/shared';
 import IllustrationForm from '@/components/IllustrationForm';
 
 export default function IllustrationEditPage() {

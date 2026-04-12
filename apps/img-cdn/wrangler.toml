@@ -1,12 +1,15 @@
-name = "unbelong-img-cdn"
+name = "tokyo86-img-cdn"
 main = "src/index.ts"
 compatibility_date = "2024-01-01"
 
-# D1 データベース
+routes = [
+  { pattern = "img.tokyo86.com", custom_domain = true }
+]
+
 [[d1_databases]]
 binding = "DB"
-database_name = "unbelong-db"
-database_id = "60316b26-074e-4fd3-a06b-272bc198b6b1"
+database_name = "tokyo86-db"
+database_id = "0614fe1a-8e77-4c8b-9a87-33584de86905"
 
 [vars]
 CLOUDFLARE_ACCOUNT_HASH = "wdR9enbrkaPsEgUtgFORrw"

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { imageApi } from '@/lib/api';
-import { getImageUrl } from '@unbelong/shared';
+import { getImageUrl } from '@tokyo86/shared';
 import { X, Search, Loader2 } from 'lucide-react';
 
 interface ImagePickerModalProps {

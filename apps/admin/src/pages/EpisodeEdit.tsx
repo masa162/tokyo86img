@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { episodesApi } from '@/lib/api';
-import type { Episode } from '@unbelong/shared';
+import type { Episode } from '@tokyo86/shared';
 import EpisodeForm from '@/components/EpisodeForm';
 
 export default function EpisodeEditPage() {

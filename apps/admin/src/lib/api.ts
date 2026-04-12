@@ -1,7 +1,7 @@
 import axios from 'axios';
-import type { ApiResponse, Work, WorkInput, Episode, Illustration, IllustrationInput, EpisodeInput } from '@unbelong/shared';
+import type { ApiResponse, Work, WorkInput, Episode, Illustration, IllustrationInput, EpisodeInput } from '@tokyo86/shared';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://unbelong-api.belong2jazz.workers.dev';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://tokyo86-api-production.belong2jazz.workers.dev';
 
 const client = axios.create({
   baseURL: API_BASE_URL,

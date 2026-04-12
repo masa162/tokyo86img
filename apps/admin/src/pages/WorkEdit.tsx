@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { worksApi } from '@/lib/api';
-import type { Work } from '@unbelong/shared';
+import type { Work } from '@tokyo86/shared';
 import WorkForm from '@/components/WorkForm';
 import { Loader2 } from 'lucide-react';
 

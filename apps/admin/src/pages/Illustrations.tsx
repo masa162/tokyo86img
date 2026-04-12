@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { illustrationsApi } from '@/lib/api';
-import type { Illustration } from '@unbelong/shared';
+import type { Illustration } from '@tokyo86/shared';
 import { Plus, Search, MoreVertical, Edit2, Trash2, ExternalLink } from 'lucide-react';
-import { getImageUrl } from '@unbelong/shared';
+import { getImageUrl } from '@tokyo86/shared';
 
 export default function IllustrationsPage() {
   const [illustrations, setIllustrations] = useState<Illustration[]>([]);

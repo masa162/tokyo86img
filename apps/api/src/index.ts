@@ -3,7 +3,7 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import { getUnixTimestamp } from '@unbelong/shared';
+import { getUnixTimestamp } from '@tokyo86/shared';
 
 // 6桁のランダム英数字を生成
 function generateBatchId(): string {
@@ -481,7 +481,7 @@ app.post('/api/batches/:batchId/upload', async (c) => {
 app.get('/api/batches/:batchId/markdown', async (c) => {
   const db = c.env.DB;
   const batchId = c.req.param('batchId');
-  const baseUrl = c.req.query('baseUrl') || `https://img.unbelong.xyz`;
+  const baseUrl = c.req.query('baseUrl') || `https://img.tokyo86.com`;
   
   const { results: images } = await db.prepare('SELECT sequence_number FROM images WHERE batch_id = ? ORDER BY sequence_number ASC').bind(batchId).all<{ sequence_number: number }>();
   if (!images || images.length === 0) return c.json({ success: false, error: 'No images found' }, 404);

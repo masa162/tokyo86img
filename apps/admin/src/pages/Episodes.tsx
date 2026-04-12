@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { episodesApi, worksApi } from '@/lib/api';
-import type { Episode, Work } from '@unbelong/shared';
+import type { Episode, Work } from '@tokyo86/shared';
 import { Plus, ChevronLeft, Edit2, Trash2 } from 'lucide-react';
 
 export default function EpisodesPage() {

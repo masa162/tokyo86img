@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { worksApi } from '@/lib/api';
 import { getImageUrl } from '@/lib/utils';
-import type { Work } from '@unbelong/shared';
+import type { Work } from '@tokyo86/shared';
 import { Plus, Book, Image as ImageIcon, ChevronRight, Edit2, Trash2 } from 'lucide-react';
 
 export default function WorksPage() {

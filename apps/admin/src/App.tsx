@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-do
 import { LayoutDashboard, Image as ImageIcon, BookOpen, Settings, LogOut, Menu, Upload, Loader2, Copy, Check, Trash2, Square, CheckSquare } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { imageApi, worksApi, episodesApi, illustrationsApi } from './lib/api';
-import { getImageUrl } from '@unbelong/shared';
+import { getImageUrl } from '@tokyo86/shared';
 import IllustrationsPage from './pages/Illustrations';
 import IllustrationNewPage from './pages/IllustrationNew';
 import IllustrationEditPage from './pages/IllustrationEdit';
@@ -396,7 +396,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-6">
         <div className="glass p-8 rounded-3xl w-full max-w-md shadow-2xl shadow-primary-100/50 border border-primary-50">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-primary-500 mb-2">unbelong admin</h1>
+            <h1 className="text-2xl font-bold text-primary-500 mb-2">tokyo86 admin</h1>
             <p className="text-gray-400 text-sm">管理者ログインが必要です</p>
           </div>
           
@@ -454,7 +454,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 glass border-r border-white/50 transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-100">
-          <span className="text-xl font-bold text-primary-500">unbelong <span className="text-xs text-gray-400 font-normal">v2</span></span>
+          <span className="text-xl font-bold text-primary-500">tokyo86 <span className="text-xs text-gray-400 font-normal">v2</span></span>
           <button className="lg:hidden" onClick={() => setSidebarOpen(false)}>
             <Menu size={20} />
           </button>
