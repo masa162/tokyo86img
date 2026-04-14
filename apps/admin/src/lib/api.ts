@@ -12,41 +12,41 @@ const client = axios.create({
 });
 
 export const worksApi = {
-  list: (type?: string) => 
+  list: (type?: string) =>
     client.get<ApiResponse<Work[]>>('/api/works', { params: { type } }),
-  get: (id: string) => 
+  get: (id: string) =>
     client.get<ApiResponse<Work>>(`/api/works/${id}`),
-  create: (data: WorkInput) => 
+  create: (data: WorkInput) =>
     client.post<ApiResponse<Work>>('/api/works', data),
-  update: (id: string, data: Partial<WorkInput>) => 
+  update: (id: string, data: Partial<WorkInput>) =>
     client.put<ApiResponse<Work>>(`/api/works/${id}`, data),
-  delete: (id: string) => 
+  delete: (id: string) =>
     client.delete<ApiResponse<void>>(`/api/works/${id}`),
 };
 
 export const illustrationsApi = {
-  list: () => 
+  list: () =>
     client.get<ApiResponse<Illustration[]>>('/api/illustrations'),
-  get: (id: string) => 
+  get: (id: string) =>
     client.get<ApiResponse<Illustration>>(`/api/illustrations/${id}`),
-  create: (data: IllustrationInput) => 
+  create: (data: IllustrationInput) =>
     client.post<ApiResponse<Illustration>>('/api/illustrations', data),
-  update: (id: string, data: Partial<IllustrationInput>) => 
+  update: (id: string, data: Partial<IllustrationInput>) =>
     client.put<ApiResponse<Illustration>>(`/api/illustrations/${id}`, data),
-  delete: (id: string) => 
+  delete: (id: string) =>
     client.delete<ApiResponse<void>>(`/api/illustrations/${id}`),
 };
 
 export const episodesApi = {
-  list: (workId?: string) => 
+  list: (workId?: string) =>
     client.get<ApiResponse<Episode[]>>('/api/episodes', { params: { workId } }),
-  get: (id: string) => 
+  get: (id: string) =>
     client.get<ApiResponse<Episode>>(`/api/episodes/${id}`),
-  create: (data: EpisodeInput) => 
+  create: (data: EpisodeInput) =>
     client.post<ApiResponse<Episode>>('/api/episodes', data),
-  update: (id: string, data: Partial<EpisodeInput>) => 
+  update: (id: string, data: Partial<EpisodeInput>) =>
     client.put<ApiResponse<Episode>>(`/api/episodes/${id}`, data),
-  delete: (id: string) => 
+  delete: (id: string) =>
     client.delete<ApiResponse<void>>(`/api/episodes/${id}`),
 };
 
@@ -60,21 +60,23 @@ export const imageApi = {
       },
     });
   },
-  list: () => 
+  list: () =>
     client.get<ApiResponse<any[]>>('/api/images'),
-  delete: (id: string) => 
+  delete: (id: string) =>
     client.delete<ApiResponse<void>>(`/api/images/${id}`),
-  bulkDelete: (ids: string[]) => 
+  bulkDelete: (ids: string[]) =>
     client.post<ApiResponse<void>>('/api/images/bulk-delete', { ids }),
 };
 
 export const batchesApi = {
-  list: () => 
+  list: () =>
     client.get<ApiResponse<any[]>>('/api/batches'),
-  get: (batchId: string) => 
+  get: (batchId: string) =>
     client.get<ApiResponse<any>>(`/api/batches/${batchId}`),
-  create: (data: { name?: string; description?: string; episode_id?: string }) => 
+  create: (data: { name?: string; description?: string; episode_id?: string; purpose?: 'cdn' | 'toon' }) =>
     client.post<ApiResponse<any>>('/api/batches', data),
+  update: (batchId: string, data: { name?: string; description?: string; purpose?: 'cdn' | 'toon' }) =>
+    client.put<ApiResponse<any>>(`/api/batches/${batchId}`, data),
   upload: (batchId: string, files: File[]) => {
     const formData = new FormData();
     files.forEach(file => formData.append('files', file));
@@ -84,9 +86,9 @@ export const batchesApi = {
       },
     });
   },
-  getMarkdown: (batchId: string) => 
+  getMarkdown: (batchId: string) =>
     client.get<ApiResponse<{ markdown: string }>>(`/api/batches/${batchId}/markdown`),
-  delete: (batchId: string) => 
+  delete: (batchId: string) =>
     client.delete<ApiResponse<void>>(`/api/batches/${batchId}`),
 };
 

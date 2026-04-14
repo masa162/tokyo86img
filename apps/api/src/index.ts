@@ -433,9 +433,50 @@ app.get('/api/batches/:batchId', async (c) => {
   const batchId = c.req.param('batchId');
   const batch = await db.prepare('SELECT * FROM image_batches WHERE batch_id = ?').bind(batchId).first();
   if (!batch) return c.json({ success: false, error: 'Batch not found' }, 404);
-  
+
   const { results: images } = await db.prepare('SELECT * FROM images WHERE batch_id = ? ORDER BY sequence_number ASC').bind(batchId).all();
   return c.json({ success: true, data: { ...batch, images } });
+});
+
+// バッチ更新
+app.put('/api/batches/:batchId', async (c) => {
+  const db = c.env.DB;
+  const batchId = c.req.param('batchId');
+  const body = await c.req.json();
+
+  const batch = await db.prepare('SELECT * FROM image_batches WHERE batch_id = ?').bind(batchId).first();
+  if (!batch) return c.json({ success: false, error: 'Batch not found' }, 404);
+
+  const now = getUnixTimestamp();
+  const updates: string[] = [];
+  const values: any[] = [];
+
+  if (body.name !== undefined) {
+    updates.push('name = ?');
+    values.push(body.name || null);
+  }
+  if (body.description !== undefined) {
+    updates.push('description = ?');
+    values.push(body.description || null);
+  }
+  if (body.purpose !== undefined) {
+    const purpose = body.purpose === 'toon' ? 'toon' : 'cdn';
+    updates.push('purpose = ?');
+    values.push(purpose);
+  }
+
+  if (updates.length === 0) {
+    return c.json({ success: true, data: batch });
+  }
+
+  updates.push('updated_at = ?');
+  values.push(now);
+  values.push(batchId);
+
+  await db.prepare(`UPDATE image_batches SET ${updates.join(', ')} WHERE batch_id = ?`).bind(...values).run();
+
+  const result = await db.prepare('SELECT * FROM image_batches WHERE batch_id = ?').bind(batchId).first();
+  return c.json({ success: true, data: result });
 });
 
 // バッチへの画像アップロード
