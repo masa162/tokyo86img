@@ -8,6 +8,7 @@ export default function BatchUpload() {
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [purpose, setPurpose] = useState<'cdn' | 'toon'>('cdn');
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [resultBatchId, setResultBatchId] = useState<string | null>(null);
@@ -28,7 +29,7 @@ export default function BatchUpload() {
 
     try {
       // 1. バッチを作成
-      const batchRes = await batchesApi.create({ name, description });
+      const batchRes = await batchesApi.create({ name, description, purpose });
       if (!batchRes.data.success || !batchRes.data.data) {
         throw new Error('バッチの作成に失敗しました');
       }
@@ -102,6 +103,7 @@ export default function BatchUpload() {
               setFiles([]);
               setName('');
               setDescription('');
+              setPurpose('cdn');
             }}
             className="flex-1 py-4 bg-gray-100 text-gray-700 rounded-2xl font-bold hover:bg-gray-200 transition-all"
           >
@@ -155,7 +157,22 @@ export default function BatchUpload() {
             </div>
           </div>
 
-          <div 
+          {/* webtoon公開トグル */}
+          <div className="flex items-center justify-between p-4 rounded-2xl border border-gray-200 bg-gray-50/50">
+            <div>
+              <div className="font-semibold text-gray-700 text-sm">webtoonとして公開</div>
+              <div className="text-xs text-gray-400 mt-0.5">tokyo86.com のフィードに表示されます</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPurpose(purpose === 'toon' ? 'cdn' : 'toon')}
+              className={`relative w-12 h-6 rounded-full transition-colors ${purpose === 'toon' ? 'bg-primary-500' : 'bg-gray-300'}`}
+            >
+              <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${purpose === 'toon' ? 'translate-x-7' : 'translate-x-1'}`} />
+            </button>
+          </div>
+
+          <div
             onClick={() => fileInputRef.current?.click()}
             className={`cursor-pointer border-2 border-dashed rounded-3xl p-12 text-center transition-all ${files.length > 0 ? 'border-primary-300 bg-primary-50/30' : 'border-gray-200 hover:border-primary-400 bg-gray-50/50'}`}
           >
@@ -164,7 +181,7 @@ export default function BatchUpload() {
               ref={fileInputRef}
               onChange={handleFileChange}
               multiple
-              accept="image/*"
+              accept=".webp,.png,.jpg,.jpeg"
               className="hidden"
             />
             <div className="space-y-4">
@@ -209,6 +226,7 @@ export default function BatchUpload() {
           💡 ヒント
         </h3>
         <ul className="text-sm text-amber-700 space-y-1 list-disc list-inside">
+          <li>対応形式: <code>webp / png / jpg / jpeg</code>（avifは非対応）</li>
           <li>アップロードされた画像は <code>img.tokyo86.com/ID/001.webp</code> のような形式で配信されます。</li>
           <li>IDはランダムに生成されるため、URLから前後の作品を推測される心配がありません。</li>
           <li>完了画面でコピーした Markdown をエピソード本文に貼るだけで公開できます。</li>

@@ -403,9 +403,10 @@ app.post('/api/batches', async (c) => {
   }
   
   const now = getUnixTimestamp();
+  const purpose = body.purpose === 'toon' ? 'toon' : 'cdn';
   await db.prepare(
-    'INSERT INTO image_batches (id, batch_id, name, description, episode_id, total_images, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-  ).bind(id, batchId, body.name || null, body.description || null, body.episode_id || null, 0, now, now).run();
+    'INSERT INTO image_batches (id, batch_id, name, description, episode_id, purpose, total_images, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  ).bind(id, batchId, body.name || null, body.description || null, body.episode_id || null, purpose, 0, now, now).run();
   
   const result = await db.prepare('SELECT * FROM image_batches WHERE id = ?').bind(id).first();
   return c.json({ success: true, data: result });
@@ -414,7 +415,15 @@ app.post('/api/batches', async (c) => {
 // バッチ一覧取得
 app.get('/api/batches', async (c) => {
   const db = c.env.DB;
-  const { results } = await db.prepare('SELECT * FROM image_batches ORDER BY created_at DESC').all();
+  const purpose = c.req.query('purpose');
+  let query = 'SELECT * FROM image_batches';
+  const params: string[] = [];
+  if (purpose) {
+    query += ' WHERE purpose = ?';
+    params.push(purpose);
+  }
+  query += ' ORDER BY created_at DESC';
+  const { results } = await db.prepare(query).bind(...params).all();
   return c.json({ success: true, data: results });
 });
 
@@ -444,8 +453,9 @@ app.post('/api/batches/:batchId/upload', async (c) => {
   if (files.length === 0) return c.json({ success: false, error: 'No files provided' }, 400);
   
   const uploadedImages = [];
+  const errors: string[] = [];
   let currentSequence = batch.total_images + 1;
-  
+
   for (const fileEntry of files) {
     if (typeof fileEntry === 'string') continue;
     const file = fileEntry as File;
@@ -458,17 +468,30 @@ app.post('/api/batches/:batchId/upload', async (c) => {
         body: uploadFormData,
       });
       const result: any = await response.json();
-      if (!result.success) continue;
-      
+      if (!result.success) {
+        const errMsg = JSON.stringify(result.errors || result.messages || result);
+        console.error(`CF Images upload failed for ${file.name}:`, errMsg);
+        errors.push(`${file.name}: ${errMsg}`);
+        continue;
+      }
+
       const imageId = result.result.id;
       const filename = result.result.filename || file.name;
       const now = getUnixTimestamp();
       await db.prepare('INSERT INTO images (id, filename, batch_id, sequence_number, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')
         .bind(imageId, filename, batchId, currentSequence, now, now).run();
-      
+
       uploadedImages.push({ id: imageId, filename, sequence_number: currentSequence });
       currentSequence++;
-    } catch (error) { console.error('Upload error:', error); }
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
+      console.error('Upload error:', errMsg);
+      errors.push(errMsg);
+    }
+  }
+
+  if (uploadedImages.length === 0 && errors.length > 0) {
+    return c.json({ success: false, error: 'All uploads failed', details: errors }, 500);
   }
   
   await db.prepare('UPDATE image_batches SET total_images = ?, updated_at = ? WHERE batch_id = ?')
