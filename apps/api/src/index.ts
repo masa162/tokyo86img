@@ -20,6 +20,9 @@ type Bindings = {
   ALLOWED_ORIGINS: string;
   CLOUDFLARE_ACCOUNT_ID: string;
   CLOUDFLARE_IMAGES_API_TOKEN: string;
+  STK_API_URL: string;
+  STK_API_KEY: string;
+  STK: Fetcher;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -537,7 +540,32 @@ app.post('/api/batches/:batchId/upload', async (c) => {
   
   await db.prepare('UPDATE image_batches SET total_images = ?, updated_at = ? WHERE batch_id = ?')
     .bind(currentSequence - 1, getUnixTimestamp(), batchId).run();
-  
+
+  // stkにService Binding経由で記録
+  if (c.env.STK && uploadedImages.length > 0) {
+    try {
+      const baseUrl = 'https://img.tokyo86.com';
+      const title = (batch.name as string | null) || `画像バッチ ${batchId}`;
+      const urlLines = uploadedImages
+        .map(img => `![](${baseUrl}/${batchId}/${String(img.sequence_number).padStart(3, '0')}.webp)`)
+        .join('\n');
+      const timestamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
+      const content = `${timestamp} アップロード\n\n${urlLines}`;
+
+      const res = await c.env.STK.fetch('https://unified-mcp.belong2jazz.workers.dev/api/articles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${c.env.STK_API_KEY}`,
+        },
+        body: JSON.stringify({ title, content, tags: ['画像', 'CDN'] }),
+      });
+      console.log('stk service binding:', res.status);
+    } catch (e) {
+      console.error('Failed to notify stk:', e);
+    }
+  }
+
   return c.json({ success: true, data: uploadedImages });
 });
 
